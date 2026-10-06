@@ -779,12 +779,24 @@
         }
 
 		function getUvColorClass(uv) {
-			if (uv < 3) return 'text-green-400';
-			if (uv < 6) return 'text-yellow-400';
-			if (uv < 8) return 'text-orange-400';
-			if (uv < 11) return 'text-red-400';
+
+			if (!Number.isFinite(uv))
+				return 'text-slate-400';
+
+			if (uv < 3)
+				return 'text-green-400';
+
+			if (uv < 6)
+				return 'text-yellow-400';
+
+			if (uv < 8)
+				return 'text-orange-400';
+
+			if (uv < 11)
+				return 'text-red-400';
+
 			return 'text-fuchsia-400';
-			}
+		}
 
         async function fetchIntlCityWeather(cityKey) {
             const config = INTL_CITIES[cityKey];
@@ -809,32 +821,63 @@
                     document.getElementById('intl-weather-icon-box').innerHTML = `<i class="fa-solid ${getWmoCodeIcon(cw.weathercode)}"></i>`;
 
                     if (data.hourly && data.hourly.relativehumidity_2m) {
-                        document.getElementById('intl-rh-val').innerText = `${data.hourly.relativehumidity_2m[new Date().getHours()] || 65}%`;
+						const humidity =
+							data.hourly?.relativehumidity_2m?.[
+								new Date().getHours()
+							];
+
+						document.getElementById('intl-rh-val').innerText =
+							Number.isFinite(humidity)
+								? `${humidity}%`
+								: '--%';
                     }
                     if (data.hourly && data.hourly.rain) {
-                        document.getElementById('intl-rain-val').innerText = `${data.hourly.rain[new Date().getHours()] || 0} mm`;
+						const rainNow =
+							data.hourly?.rain?.[
+								new Date().getHours()
+							];
+
+						document.getElementById('intl-rain-val').innerText =
+							Number.isFinite(rainNow)
+								? `${rainNow} mm`
+								: '-- mm';
                     }
                 }
 			
 				if (data.daily) {
 
-					if (data.daily.precipitation_probability_max) {
-						document.getElementById('intl-rainprob-val').innerText =
-							`${data.daily.precipitation_probability_max[0]}%`;
-					}
+					const rainProbToday =
+						data.daily?.precipitation_probability_max?.[0];
 
-					if (data.daily.uv_index_max) {
+					document.getElementById('intl-rainprob-val').innerText =
+						Number.isFinite(rainProbToday)
+							? `${rainProbToday}%`
+							: '--%';
 
-						const uvToday =
-							Math.round(data.daily.uv_index_max[0] * 10) / 10;
 
-						const uvElement =
-							document.getElementById('intl-uv-val');
+					const uvToday =
+						data.daily?.uv_index_max?.[0];
 
-						uvElement.innerText = uvToday;
+					const uvElement =
+						document.getElementById('intl-uv-val');
+
+					if (Number.isFinite(uvToday)) {
+
+						const roundedUv =
+							Math.round(uvToday * 10) / 10;
+
+						uvElement.innerText =
+							roundedUv;
 
 						uvElement.className =
-							getUvColorClass(uvToday);
+							getUvColorClass(roundedUv);
+
+					} else {
+
+						uvElement.innerText = '--';
+
+						uvElement.className = 'text-slate-400';
+
 					}
 
 				}
@@ -878,15 +921,19 @@
                 const minT = Math.round(daily.temperature_2m_min ? daily.temperature_2m_min[i] : 16);
                 const rain = daily.precipitation_sum ? Math.round(daily.precipitation_sum[i] * 10) / 10 : 0;
 				const rainProb =
-				daily.precipitation_probability_max
-				? daily.precipitation_probability_max[i]
-				: 0;
-				 
+					Number.isFinite(
+						daily.precipitation_probability_max?.[i]
+					)
+						? daily.precipitation_probability_max[i]
+						: null;
+
 				const uv =
-				daily.uv_index_max
-				? Math.round(daily.uv_index_max[i] * 10) / 10
-				: 0;
-				 
+					Number.isFinite(
+						daily.uv_index_max?.[i]
+					)
+						? Math.round(daily.uv_index_max[i] * 10) / 10
+						: null;
+		 
 				const uvClass = getUvColorClass(uv);
 
                 const iconClass = getWmoCodeIcon(code);
@@ -907,7 +954,10 @@
 
 							<div class="flex items-center justify-center gap-1">
 								<i class="fa-solid fa-cloud-rain text-sky-400"></i>
-								<span>${rainProb}%</span>
+								<span>
+									${rainProb !== null ? rainProb + '%' : '--'}
+								</span>
+
 							</div>
 
 							<div class="flex items-center justify-center gap-1">
@@ -917,8 +967,8 @@
 
 							<div class="flex items-center justify-center gap-1">
 								<i class="fa-solid fa-sun text-amber-400"></i>
-								<span class="${uvClass} font-bold">
-									UV ${uv}
+								<span class="${uv ? uvClass : 'text-slate-500'} font-bold">
+									${uv !== null ? `UV ${uv}` : 'UV --'}
 								</span>
 							</div>
 
