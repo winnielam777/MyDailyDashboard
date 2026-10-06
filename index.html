@@ -588,7 +588,10 @@
             });
 
             cachedBusEtas = Object.values(routeMap);
-            cachedBusEtas.forEach(r => r.etas.sort((a, b) => a - b));
+            cachedBusEtas.forEach(r => {
+                r.etas = [...new Set(r.etas)];
+                r.etas.sort((a, b) => a - b);
+            });
 
             renderBusEtaList();
         }
