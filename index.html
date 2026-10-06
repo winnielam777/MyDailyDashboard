@@ -115,13 +115,17 @@
             <section class="glass-panel rounded-xl p-3 sm:p-4 shadow-lg border-l-4 border-l-rose-500">
                 
                 <!-- Bus Header & Refresh Button -->
-                <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-700/60">
+                <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-700/60 flex-wrap gap-2">
                     <div class="flex items-center space-x-2">
                         <i class="fa-solid fa-bus text-rose-500 text-base"></i>
                         <h2 class="text-base font-bold text-white tracking-wide">九巴預計到站時間</h2>
                     </div>
                     
                     <div class="flex items-center space-x-2">
+                        <button onclick="openStopModal()" class="px-2.5 py-1 rounded bg-rose-900/40 hover:bg-rose-800/60 border border-rose-700/80 text-xs text-rose-200 font-medium flex items-center gap-1 transition-colors">
+                            <i class="fa-solid fa-sliders text-[11px]"></i>
+                            <span>設定巴士站</span>
+                        </button>
                         <button onclick="fetchKmbEta(true)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs text-slate-200 font-medium flex items-center gap-1 transition-colors">
                             <i class="fa-solid fa-rotate-right text-[11px]" id="icon-kmb-sync"></i>
                             <span>重新整理</span>
@@ -319,6 +323,7 @@
                     <option value="KA122">KA122 - 德朗邨停車場 Tak Long Estate Carpark (Hash: C1C31D615DAA97F4)</option>
                     <option value="KT100">KT100 - 啟隧轉車站 - 啟福道 Kai Tak Tunnel BBI (Hash: BE27F066CF40DF7D)</option>
                     <option value="KT322">KT322 - 九龍灣站（東九文化中心） Kowloon Bay Station (Hash: BC7C325EE59235E4)</option>
+                    <option value="KT325">KT325 - 牛頭角下邨 Lower Ngau Tau Kok Estate (Hash: 6216EE509BD55B09)</option>
                     <option value="KT695">KT695 - 淘大花園（往啟德/觀塘） Amoy Gardens (Hash: 426029D3D8AE6E40)</option>
                     <option value="KT696">KT696 - 淘大花園（經啟德隧道） Amoy Gardens (Hash: 3E54E8AF4083B065)</option>
                     <option value="LT545">LT545 - 麗港中心 Laguna Arcade (Hash: AA552AEC56A11EE4)</option>
@@ -354,6 +359,7 @@
             'KA122': { code: 'KA122', name: '德朗邨停車場', enName: 'Tak Long Estate Carpark', hash: 'C1C31D615DAA97F4' },
             'KT100': { code: 'KT100', name: '啟隧轉車站 - 啟福道', enName: 'Kai Tak Tunnel BBI - Kai Fuk Road', hash: 'BE27F066CF40DF7D' },
             'KT322': { code: 'KT322', name: '九龍灣站（東九文化中心）', enName: 'Kowloon Bay Station (EKCC)', hash: 'BC7C325EE59235E4' },
+            'KT325': { code: 'KT325', name: '牛頭角下邨', enName: 'Lower Ngau Tau Kok Estate', hash: '6216EE509BD55B09' },
             'KT695': { code: 'KT695', name: '淘大花園（往啟德/觀塘）', enName: 'Amoy Gardens (To Kai Tak/KT)', hash: '426029D3D8AE6E40' },
             'KT696': { code: 'KT696', name: '淘大花園（經啟德隧道）', enName: 'Amoy Gardens (via Kai Tak Tunnel)', hash: '3E54E8AF4083B065' },
             'LT545': { code: 'LT545', name: '麗港中心', enName: 'Laguna Arcade', hash: 'AA552AEC56A11EE4' }
@@ -594,6 +600,7 @@
             let routes = ['219X', '14X', '23M', '6E', '101'];
             if (currentStop.code === 'KT100') routes = ['107', '101', '111', '116', '14'];
             if (currentStop.code === 'KA122') routes = ['20', '22', '608', '22M'];
+            if (currentStop.code === 'KT325') routes = ['1A', '13D', '14', '15', '215X'];
 
             cachedBusEtas = routes.map((rt, idx) => {
                 const t1 = now + (idx * 3 + 2) * 60 * 1000;
