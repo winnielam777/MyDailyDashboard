@@ -536,6 +536,18 @@
         // --- 4. KMB BUS ETAS WITH DYNAMIC TARGET TIMESTAMP COUNTDOWN ---
         async function fetchKmbEta(isManual = false) {
             const syncIcon = document.getElementById('icon-kmb-sync');
+             
+            cachedBusEtas = [];
+             
+            const container = document.getElementById('kmb-eta-container');
+            if (container) {
+            container.innerHTML = `
+            <div class="p-4 text-center text-slate-400 text-xs">
+            載入中...
+            </div>
+            `;
+            }
+
             if (syncIcon) syncIcon.classList.add('animate-spin');
 
             const hash = currentStop.hash;
