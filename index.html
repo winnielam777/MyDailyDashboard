@@ -1146,6 +1146,9 @@
 			const risk =
 				getCycloneRisk(distance);
 
+			panel.className =
+				`mt-3 rounded-xl p-3 border bg-slate-950/40 ${risk.className}`;
+
 			panel.classList.remove('hidden');
 
 			document.getElementById(
@@ -1161,32 +1164,51 @@
 					cyclone.lon
 				);
 
+			const etaColor =
+				closestHours <= 24
+					? 'text-red-400'
+					: closestHours <= 48
+					? 'text-orange-400'
+					: 'text-yellow-400';
+
 			document.getElementById(
 				'cyclone-summary'
 			).innerHTML = `
+
 				<div class="font-bold text-orange-300">
 					Typhoon ${cyclone.name}
 				</div>
 
-				<div>
-					📍 ${distance} km ${direction}
+				<div class="mt-1 space-y-1">
+
+					<div>
+						📍 Distance:
+						<span class="font-semibold text-white">
+							${distance} km
+						</span>
+						${direction}
+						of
+						${city.name}
+					</div>
+
+					<div>
+						🧭 Moving:
+						<span class="font-semibold text-white">
+							${cyclone.movement}
+						</span>
+					</div>
+
+					<div>
+						⏱ Closest Approach:
+						<span class="font-semibold ${etaColor}">
+							${closestHours} hrs
+						</span>
+					</div>
+
 				</div>
 
-				<div>
-					🧭 Track ${cyclone.movement}
-				</div>
-
-				<!-- const closestHours = -->
-				<!-- getClosestApproachHours( -->
-				<!-- city, -->
-				<!-- cyclone -->
-				<!-- ); -->
-
-				<div>
-					⏱ Closest Approach
-					${closestHours} hrs
-				</div>
 			`;
+
 
 			renderCycloneTrackMap(cyclone);
 		}		
