@@ -378,6 +378,8 @@
                 <select id="preset-stop-select" onchange="onPresetSelectChange(this.value)" class="w-full bg-slate-900 border border-slate-700 text-rose-300 text-xs rounded-lg p-2.5 focus:ring-1 focus:ring-rose-500 focus:outline-none">
                     <option value="LT421">LT421 - 麗港公園 Laguna Park (Hash: FF6E49051D6D9A8C) [Default]</option>
                     <option value="KA122">KA122 - 德朗邨停車場 Tak Long Estate Carpark (Hash: C1C31D615DAA97F4)</option>
+					<option value="KA511">KA511 - 德朗邨停車場（南行）Tak Long Estate Carpark (Southbound)(Hash: 0A4AB87891ABB16A)</option>
+					<option value="KA511">KA512 - 機電工程署總部（南行）EMSD Headquarters (Southbound) (Hash: 6730CB42E8AA1302)</option>					
                     <option value="KT100">KT100 - 啟隧轉車站 - 啟福道 Kai Tak Tunnel BBI (Hash: BE27F066CF40DF7D)</option>
                     <option value="KT322">KT322 - 九龍灣站（東九文化中心） Kowloon Bay Station (Hash: BC7C325EE59235E4)</option>
                     <option value="KT325">KT325 - 牛頭角下邨 Lower Ngau Tau Kok Estate (Hash: 6216EE509BD55B09)</option>
@@ -414,6 +416,8 @@
         const BUS_STOP_DATABASE = {
             'LT421': { code: 'LT421', name: '麗港公園', enName: 'Laguna Park', hash: 'FF6E49051D6D9A8C' },
             'KA122': { code: 'KA122', name: '德朗邨停車場', enName: 'Tak Long Estate Carpark', hash: 'C1C31D615DAA97F4' },
+			'KA511': { code: 'KA511', name: '德朗邨停車場（南行）', enName: 'Tak Long Estate Carpark (Southbound)', hash: '0A4AB87891ABB16A'},
+			'KA512': { code: 'KA512', name: '機電工程署總部（南行）', enName: 'EMSD Headquarters (Southbound)', hash: '6730CB42E8AA1302' },
             'KT100': { code: 'KT100', name: '啟隧轉車站 - 啟福道', enName: 'Kai Tak Tunnel BBI - Kai Fuk Road', hash: 'BE27F066CF40DF7D' },
             'KT322': { code: 'KT322', name: '九龍灣站（東九文化中心）', enName: 'Kowloon Bay Station (EKCC)', hash: 'BC7C325EE59235E4' },
             'KT325': { code: 'KT325', name: '牛頭角下邨', enName: 'Lower Ngau Tau Kok Estate', hash: '6216EE509BD55B09' },
@@ -1561,9 +1565,10 @@
 
 
         // --- 7. APPLICATION INITIALIZATION ---
-        window.onload = function() {
+        window.onload = async function() {
 
-            fetchLiveCyclones();
+            await fetchLiveCyclones();
+			
 			setInterval(
 			fetchLiveCyclones,
 			30 * 60 * 1000
