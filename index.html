@@ -995,43 +995,45 @@
 
 		}		
 
-		function getNearestCyclone(city) {
+function getNearestCyclone(city) {
 
-			let nearest = null;
+    let nearest = null;
 
-			let nearestDistance = Infinity;
+    let nearestDistance = Infinity;
 
-			const cycloneList =
-				activeCyclones.length > 0
-					? activeCyclones
-					: FALLBACK_CYCLONES;
+    const cycloneList =
+        activeCyclones.length > 0
+            ? activeCyclones
+            : FALLBACK_CYCLONES;
 
-			for (const cyclone of cycloneList)
+    for (const cyclone of cycloneList) {
 
-				const distance = haversineDistance(
-					city.lat,
-					city.lng,
-					cyclone.lat,
-					cyclone.lon
-				);
+        const distance = haversineDistance(
+            city.lat,
+            city.lng,
+            cyclone.lat,
+            cyclone.lon
+        );
 
-				if (distance < nearestDistance) {
+        if (distance < nearestDistance) {
 
-					nearestDistance = distance;
+            nearestDistance = distance;
 
-					nearest = cyclone;
-				}
-			}
+            nearest = cyclone;
 
-			if (!nearest)
-				return null;
+        }
 
-			return {
-				cyclone: nearest,
-				distance: nearestDistance
-			};
-		}
+    }
 
+    if (!nearest)
+        return null;
+
+    return {
+        cyclone: nearest,
+        distance: nearestDistance
+    };
+
+}
 		function evaluateCycloneThreat(city) {
 
 			const nearestResult =
