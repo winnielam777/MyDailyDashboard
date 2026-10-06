@@ -1135,26 +1135,20 @@
 				threat.cyclone;
 
 			const closestHours =
-			getClosestApproachHours(
-			city,
-			cyclone
-			);
+				getClosestApproachHours(
+					city,
+					cyclone
+				);
 
 			const distance =
-				Math.round(threat.distance);
+				Math.round(
+					threat.distance
+				);
 
 			const risk =
-				getCycloneRisk(distance);
-
-			panel.className =
-				`mt-3 rounded-xl p-3 border bg-slate-950/40 ${risk.className}`;
-
-			panel.classList.remove('hidden');
-
-			document.getElementById(
-				'cyclone-alert-level'
-			).innerHTML =
-				`${risk.emoji} ${risk.text}`;
+				getCycloneRisk(
+					distance
+				);
 
 			const direction =
 				getBearingDirection(
@@ -1171,6 +1165,16 @@
 					? 'text-orange-400'
 					: 'text-yellow-400';
 
+			panel.className =
+				`mt-3 rounded-xl p-3 border bg-slate-950/40 ${risk.className}`;
+
+			panel.classList.remove('hidden');
+
+			document.getElementById(
+				'cyclone-alert-level'
+			).innerHTML =
+				`${risk.emoji} ${risk.text}`;
+
 			document.getElementById(
 				'cyclone-summary'
 			).innerHTML = `
@@ -1179,7 +1183,7 @@
 					Typhoon ${cyclone.name}
 				</div>
 
-				<div class="mt-1 space-y-1">
+				<div class="mt-2 space-y-1">
 
 					<div>
 						📍 Distance:
@@ -1209,9 +1213,10 @@
 
 			`;
 
-
-			renderCycloneTrackMap(cyclone);
-		}		
+			renderCycloneTrackMap(
+				cyclone
+			);
+		}
 		
 
         async function fetchIntlCityWeather(cityKey) {
