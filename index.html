@@ -236,7 +236,7 @@
                 </div>
 
                 <!-- Weather Stats for Selected International City -->
-                <div class="md:col-span-7 flex items-center justify-between bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+                <div class="md:col-span-7 flex flex-col items-start bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
                     <div class="flex items-center space-x-3">
                         <div id="intl-weather-icon-box" class="text-3xl text-amber-400">
                             <i class="fa-solid fa-sun"></i>
@@ -274,6 +274,39 @@
 									</strong>
 								</span>
 							</div>
+
+							<!-- Tropical Cyclone Intelligence Panel -->
+
+							<div
+								id="intl-cyclone-panel"
+								class="hidden mt-3 rounded-xl border border-orange-700 bg-orange-950/20 p-3">
+
+								<div class="flex items-center gap-2 mb-2">
+
+									<i class="fa-solid fa-hurricane text-orange-400"></i>
+
+									<span
+										id="cyclone-alert-level"
+										class="font-bold text-orange-300">
+
+										Tropical Cyclone Monitor
+
+									</span>
+
+								</div>
+
+								<div
+									id="cyclone-summary"
+									class="text-xs text-slate-200">
+								</div>
+
+								<div
+									id="cyclone-track-map"
+									class="mt-3">
+								</div>
+
+							</div>
+
 
                         </div>
                     </div>
@@ -408,6 +441,43 @@
             shunde: { name: '順德', enName: 'Shunde', timezone: 'Asia/Shanghai', tag: 'CST UTC+8', diffText: '與香港相同時區', lat: 22.8062, lng: 113.2982 },
             shenzhen: { name: '深圳', enName: 'Shenzhen', timezone: 'Asia/Shanghai', tag: 'CST UTC+8', diffText: '與香港相同時區', lat: 22.5431, lng: 114.0579 }
         };
+		
+		// --- MOCK TROPICAL CYCLONES (PHASE 3A) ---
+		const MOCK_CYCLONES = [
+			{
+				name: 'Maria',
+
+				lat: 24.5,
+				lon: 128.5,
+
+				movement: 'NNE',
+
+				forecastHours: 36,
+
+				forecastTrack: [
+					{ lat: 24.5, lon: 128.5 },
+					{ lat: 25.2, lon: 129.1 },
+					{ lat: 26.0, lon: 129.9 },
+					{ lat: 27.0, lon: 130.8 }
+				]
+			},
+			{
+				name: 'Amy',
+
+				lat: 16.0,
+				lon: 140.0,
+
+				movement: 'NW',
+
+				forecastHours: 72,
+
+				forecastTrack: [
+					{ lat: 16.0, lon: 140.0 },
+					{ lat: 17.5, lon: 138.5 },
+					{ lat: 19.0, lon: 137.0 }
+				]
+			}
+		];		
 
 
         // --- 2. CLOCK & TIMESTAMP ENGINE ---
@@ -798,6 +868,263 @@
 			return 'text-fuchsia-400';
 		}
 
+		// Distance calculation
+		function haversineDistance(
+			lat1,
+			lon1,
+			lat2,
+			lon2
+		) {
+
+			const R = 6371;
+
+			const dLat =
+				(lat2 - lat1) * Math.PI / 180;
+
+			const dLon =
+				(lon2 - lon1) * Math.PI / 180;
+
+			const a =
+				Math.sin(dLat / 2) ** 2 +
+				Math.cos(lat1 * Math.PI / 180) *
+				Math.cos(lat2 * Math.PI / 180) *
+				Math.sin(dLon / 2) ** 2;
+
+			return R *
+				2 *
+				Math.atan2(
+					Math.sqrt(a),
+					Math.sqrt(1 - a)
+				);
+
+		}
+
+		function getBearingDirection(
+			fromLat,
+			fromLon,
+			toLat,
+			toLon
+		) {
+
+			const dLon =
+				(toLon - fromLon) *
+				Math.PI / 180;
+
+			const y =
+				Math.sin(dLon) *
+				Math.cos(toLat * Math.PI / 180);
+
+			const x =
+				Math.cos(fromLat * Math.PI / 180) *
+				Math.sin(toLat * Math.PI / 180) -
+				Math.sin(fromLat * Math.PI / 180) *
+				Math.cos(toLat * Math.PI / 180) *
+				Math.cos(dLon);
+
+			let bearing =
+				Math.atan2(y, x) * 180 / Math.PI;
+
+			bearing =
+				(bearing + 360) % 360;
+
+			const dirs =
+				['N','NE','E','SE','S','SW','W','NW'];
+
+			return dirs[
+				Math.round(bearing / 45) % 8
+			];
+
+		}
+
+		// Alert Color Logic	
+		function getCycloneRisk(distanceKm) {
+
+			if (distanceKm < 300) {
+				return {
+					emoji: '🔴',
+					text: 'Cyclone Impact Likely',
+					className: 'border-red-700'
+				};
+			}
+
+			if (distanceKm < 800) {
+				return {
+					emoji: '🟠',
+					text: 'Cyclone Nearby',
+					className: 'border-orange-700'
+				};
+			}
+
+			if (distanceKm < 1500) {
+				return {
+					emoji: '🟡',
+					text: 'Monitor Tropical System',
+					className: 'border-yellow-700'
+				};
+			}
+
+			return null;
+
+		}		
+
+		function getNearestCyclone(city) {
+
+			let nearest = null;
+
+			let nearestDistance = Infinity;
+
+			for (const cyclone of MOCK_CYCLONES) {
+
+				const distance = haversineDistance(
+					city.lat,
+					city.lng,
+					cyclone.lat,
+					cyclone.lon
+				);
+
+				if (distance < nearestDistance) {
+
+					nearestDistance = distance;
+
+					nearest = cyclone;
+				}
+			}
+
+			if (!nearest)
+				return null;
+
+			return {
+				cyclone: nearest,
+				distance: nearestDistance
+			};
+		}
+
+		function evaluateCycloneThreat(city) {
+
+			const nearestResult =
+				getNearestCyclone(city);
+
+			if (!nearestResult)
+				return null;
+
+			if (nearestResult.distance > 1500)
+				return null;
+
+			return nearestResult;
+		}
+
+		function renderCycloneTrackMap(cyclone) {
+
+			const container =
+				document.getElementById(
+					'cyclone-track-map'
+				);
+
+			let html = `
+				<div class="flex items-center justify-center gap-1">
+			`;
+
+			cyclone.forecastTrack.forEach((pt, idx) => {
+
+				html += `
+					<div class="
+						w-3 h-3 rounded-full
+						${idx === 0
+							? 'bg-red-500'
+							: 'bg-orange-400'}
+					">
+					</div>
+				`;
+
+				if (idx < cyclone.forecastTrack.length - 1) {
+
+					html += `
+						<div class="w-8 h-1 bg-orange-400">
+						</div>
+					`;
+				}
+			});
+
+			html += `
+				</div>
+
+				<div
+					class="text-center text-[10px]
+						   text-slate-400 mt-1">
+
+					Forecast Track
+				</div>
+			`;
+
+			container.innerHTML = html;
+		}
+		
+		function renderCyclonePanel(city) {
+
+			const panel =
+				document.getElementById(
+					'intl-cyclone-panel'
+				);
+
+			const threat =
+				evaluateCycloneThreat(city);
+
+			if (!threat) {
+
+				panel.classList.add('hidden');
+
+				return;
+			}
+
+			const cyclone =
+				threat.cyclone;
+
+			const distance =
+				Math.round(threat.distance);
+
+			const risk =
+				getCycloneRisk(distance);
+
+			panel.classList.remove('hidden');
+
+			document.getElementById(
+				'cyclone-alert-level'
+			).innerHTML =
+				`${risk.emoji} ${risk.text}`;
+
+			const direction =
+				getBearingDirection(
+					city.lat,
+					city.lng,
+					cyclone.lat,
+					cyclone.lon
+				);
+
+			document.getElementById(
+				'cyclone-summary'
+			).innerHTML = `
+				<div class="font-bold text-orange-300">
+					Typhoon ${cyclone.name}
+				</div>
+
+				<div>
+					📍 ${distance} km ${direction}
+				</div>
+
+				<div>
+					🧭 Track ${cyclone.movement}
+				</div>
+
+				<div>
+					⏱ Closest Approach
+					${cyclone.forecastHours} hrs
+				</div>
+			`;
+
+			renderCycloneTrackMap(cyclone);
+		}		
+		
+
         async function fetchIntlCityWeather(cityKey) {
             const config = INTL_CITIES[cityKey];
             if (!config) return;
@@ -888,7 +1215,7 @@
 					renderIntlForecastFallback();
 				}
 				
-				
+				renderCyclonePanel(config);
 				
 				
             } catch (err) {
@@ -899,6 +1226,7 @@
                 document.getElementById('intl-rain-val').innerText = '0 mm';
                 document.getElementById('intl-wind-val').innerText = '12 km/h';
                 renderIntlForecastFallback();
+				renderCyclonePanel(config);
             }
         }
 
