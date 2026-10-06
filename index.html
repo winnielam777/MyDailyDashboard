@@ -453,13 +453,36 @@
 				movement: 'NNE',
 
 				forecastHours: 36,
-
+				
 				forecastTrack: [
-					{ lat: 24.5, lon: 128.5 },
-					{ lat: 25.2, lon: 129.1 },
-					{ lat: 26.0, lon: 129.9 },
-					{ lat: 27.0, lon: 130.8 }
-				]
+
+					{
+						lat: 24.5,
+						lon: 128.5,
+						hours: 0
+					},
+
+					{
+						lat: 25.2,
+						lon: 129.1,
+						hours: 24
+					},
+
+					{
+						lat: 26.0,
+						lon: 129.9,
+						hours: 48
+					},
+
+					{
+						lat: 27.0,
+						lon: 130.8,
+						hours: 72
+					}
+
+				]				
+				
+				
 			},
 			{
 				name: 'Amy',
@@ -1013,6 +1036,38 @@
 			return nearestResult;
 		}
 
+		function getClosestApproachHours(
+			city,
+			cyclone
+		) {
+
+			let bestHours = null;
+			let nearestDistance = Infinity;
+
+			cyclone.forecastTrack.forEach(pt => {
+
+				const distance =
+					haversineDistance(
+						city.lat,
+						city.lng,
+						pt.lat,
+						pt.lon
+					);
+
+				if (distance < nearestDistance) {
+
+					nearestDistance = distance;
+
+					bestHours = pt.hours;
+
+				}
+
+			});
+
+			return bestHours;
+
+		}
+
 		function renderCycloneTrackMap(cyclone) {
 
 			const container =
@@ -1115,9 +1170,15 @@
 					🧭 Track ${cyclone.movement}
 				</div>
 
+				const closestHours =
+				getClosestApproachHours(
+				city,
+				cyclone
+				);
+
 				<div>
 					⏱ Closest Approach
-					${cyclone.forecastHours} hrs
+					${closestHours} hrs
 				</div>
 			`;
 
