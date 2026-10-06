@@ -443,7 +443,7 @@
         };
 		
 		// --- MOCK TROPICAL CYCLONES (PHASE 3A) ---
-		const MOCK_CYCLONES = [
+		const FALLBACK_CYCLONES = [
 			{
 				name: 'Maria',
 
@@ -502,6 +502,7 @@
 			}
 		];		
 
+		let activeCyclones = [];
 
         // --- 2. CLOCK & TIMESTAMP ENGINE ---
         function startClocks() {
@@ -996,7 +997,12 @@
 
 			let nearestDistance = Infinity;
 
-			for (const cyclone of MOCK_CYCLONES) {
+			const cycloneList =
+				activeCyclones.length > 0
+					? activeCyclones
+					: FALLBACK_CYCLONES;
+
+			for (const cyclone of cycloneList)
 
 				const distance = haversineDistance(
 					city.lat,
@@ -1217,7 +1223,78 @@
 				cyclone
 			);
 		}
-		
+
+		async function fetchLiveCyclones() {
+
+			try {
+
+				//
+				// Phase 4A
+				//
+				// TEMPORARY MOCK OF LIVE FEED
+				//
+				// Replace this section later
+				// with JMA parsing logic
+				//
+
+				activeCyclones = [
+					{
+						name: 'Maria',
+
+						lat: 24.5,
+						lon: 128.5,
+
+						movement: 'NNE',
+
+						forecastTrack: [
+
+							{
+								lat: 24.5,
+								lon: 128.5,
+								hours: 0
+							},
+
+							{
+								lat: 25.2,
+								lon: 129.1,
+								hours: 24
+							},
+
+							{
+								lat: 26.0,
+								lon: 129.9,
+								hours: 48
+							},
+
+							{
+								lat: 27.0,
+								lon: 130.8,
+								hours: 72
+							}
+
+						]
+
+					}
+				];
+
+				console.log(
+					'Cyclones Loaded:',
+					activeCyclones.length
+				);
+
+			}
+			catch(err) {
+
+				console.warn(
+					'Cyclone feed failed',
+					err
+				);
+
+				activeCyclones = [];
+
+			}
+
+		}		
 
         async function fetchIntlCityWeather(cityKey) {
             const config = INTL_CITIES[cityKey];
@@ -1485,7 +1562,14 @@
 
         // --- 7. APPLICATION INITIALIZATION ---
         window.onload = function() {
-            // Set header for default station (LT421 麗港公園)
+
+            fetchLiveCyclones();
+			setInterval(
+			fetchLiveCyclones,
+			30 * 60 * 1000
+			);			
+
+			// Set header for default station (LT421 麗港公園)
             updateStationHeader();
 
             // 1. Start live digital clock
