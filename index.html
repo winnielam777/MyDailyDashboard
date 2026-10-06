@@ -1134,6 +1134,12 @@
 			const cyclone =
 				threat.cyclone;
 
+			const closestHours =
+			getClosestApproachHours(
+			city,
+			cyclone
+			);
+
 			const distance =
 				Math.round(threat.distance);
 
@@ -1170,11 +1176,11 @@
 					🧭 Track ${cyclone.movement}
 				</div>
 
-				const closestHours =
-				getClosestApproachHours(
-				city,
-				cyclone
-				);
+				<!-- const closestHours = -->
+				<!-- getClosestApproachHours( -->
+				<!-- city, -->
+				<!-- cyclone -->
+				<!-- ); -->
 
 				<div>
 					⏱ Closest Approach
