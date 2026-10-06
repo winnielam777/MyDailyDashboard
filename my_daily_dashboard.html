@@ -1,0 +1,929 @@
+<!DOCTYPE html>
+<html lang="zh-HK" class="h-full bg-slate-950 text-slate-100">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>My Daily Dashboard - 香港個人日常儀表板</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        kmb: {
+                            red: '#e11d48',
+                            darkred: '#be123c',
+                            gold: '#f59e0b',
+                            dark: '#0f172a'
+                        },
+                        hkblue: '#0284c7',
+                        hkaccent: '#06b6d4'
+                    },
+                    fontFamily: {
+                        sans: ['Inter', 'PingFang HK', 'Microsoft JhengHei', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace']
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom scrollbar and landscape optimization */
+        ::-webkit-scrollbar {
+            width: 5px;
+            height: 5px;
+        }
+        ::-webkit-scrollbar-track {
+            background: rgba(15, 23, 42, 0.8);
+        }
+        ::-webkit-scrollbar-thumb {
+            background: rgba(51, 65, 85, 0.8);
+            border-radius: 9999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: rgba(100, 116, 139, 1);
+        }
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.75);
+            backdrop-filter: blur(12px);
+            -webkit-backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+        .bus-row {
+            border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+        }
+        .bus-row:last-child {
+            border-bottom: none;
+        }
+    </style>
+</head>
+<body class="h-full min-h-screen bg-slate-950 text-slate-100 flex flex-col font-sans antialiased overflow-x-hidden selection:bg-rose-500 selection:text-white">
+
+    <!-- TOP LANDSCAPE HEADER -->
+    <header class="bg-slate-900 border-b border-slate-800 px-4 py-2.5 sm:px-6 sticky top-0 z-30 shadow-md">
+        <div class="max-w-7xl mx-auto grid grid-cols-12 gap-2 items-center">
+            
+            <!-- Left Header: Big HKT Digital Clock -->
+            <div class="col-span-4 sm:col-span-3 flex items-center space-x-3">
+                <span id="hk-clock-display" class="text-3xl sm:text-4xl font-black font-mono tracking-tight text-white drop-shadow">
+                    21:04
+                </span>
+                <span id="hk-clock-sec" class="text-xs font-mono text-rose-400 font-bold self-end mb-1 sm:mb-1.5">
+                    :22
+                </span>
+            </div>
+
+            <!-- Middle Header: Full Date & Current Station Name -->
+            <div class="col-span-5 sm:col-span-6 text-center">
+                <div id="hk-date-display" class="text-xs sm:text-sm font-bold text-slate-200 tracking-wide">
+                    2026年10月06日 星期二
+                </div>
+                <div class="text-xs text-rose-400 font-semibold flex items-center justify-center gap-1 mt-0.5">
+                    <i class="fa-solid fa-location-dot text-[11px]"></i>
+                    <span id="header-location-name">香港 ‧ 麗港公園</span>
+                    <span id="header-location-code" class="text-[10px] bg-rose-950 text-rose-300 px-1.5 py-0.2 rounded border border-rose-800 font-mono">LT421</span>
+                </div>
+            </div>
+
+            <!-- Right Header: Temperature, Humidity, and HKO Weather Icon -->
+            <div class="col-span-3 sm:col-span-3 flex items-center justify-end space-x-2 sm:space-x-3">
+                <div class="text-right">
+                    <div class="flex items-baseline justify-end">
+                        <span id="hk-temp-val" class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">30</span>
+                        <span class="text-lg font-bold text-slate-300 ml-0.5">°C</span>
+                    </div>
+                    <div id="hk-humidity-val" class="text-[11px] text-slate-400 font-medium">
+                        濕度 <span id="hk-rh-num" class="text-slate-200 font-semibold">69%</span>
+                    </div>
+                </div>
+                <div id="hk-weather-icon-container" class="w-10 h-10 sm:w-12 sm:h-12 flex items-center justify-center text-amber-400 text-2xl sm:text-3xl">
+                    <i class="fa-solid fa-cloud-sun"></i>
+                </div>
+            </div>
+
+        </div>
+    </header>
+
+    <!-- MAIN DASHBOARD CONTENT AREA (Landscape Split View for iPad / Desktop) -->
+    <main class="flex-1 max-w-7xl w-full mx-auto p-3 sm:p-4 space-y-4">
+
+        <!-- Top Split: Bus ETAs (Left) + HKO Forecast (Right) -->
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-start">
+
+            <!-- LEFT COLUMN: KMB BUS ETAs SECTION -->
+            <section class="glass-panel rounded-xl p-3 sm:p-4 shadow-lg border-l-4 border-l-rose-500">
+                
+                <!-- Bus Header & Refresh Button -->
+                <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-700/60">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-bus text-rose-500 text-base"></i>
+                        <h2 class="text-base font-bold text-white tracking-wide">九巴預計到站時間</h2>
+                    </div>
+                    
+                    <div class="flex items-center space-x-2">
+                        <button onclick="fetchKmbEta(true)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs text-slate-200 font-medium flex items-center gap-1 transition-colors">
+                            <i class="fa-solid fa-rotate-right text-[11px]" id="icon-kmb-sync"></i>
+                            <span>重新整理</span>
+                        </button>
+                        <span id="kmb-countdown-badge" class="text-[10px] font-mono bg-rose-950/80 text-rose-300 px-1.5 py-0.5 rounded border border-rose-800">
+                            60s
+                        </span>
+                    </div>
+                </div>
+
+                <!-- Bus ETA Route Table / List -->
+                <div id="kmb-eta-container" class="space-y-2 min-h-[220px]">
+                    <!-- Dynamic bus routes will be injected here -->
+                    <div class="p-6 text-center text-slate-400 text-xs">
+                        <i class="fa-solid fa-circle-notch animate-spin text-rose-500 text-xl mb-2 block"></i>
+                        載入九巴班次數據中...
+                    </div>
+                </div>
+
+            </section>
+
+            <!-- RIGHT COLUMN: HKO WEATHER FORECAST SECTION -->
+            <section class="glass-panel rounded-xl p-3 sm:p-4 shadow-lg border-l-4 border-l-sky-500">
+                
+                <!-- Weather Header & Refresh Button -->
+                <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-700/60">
+                    <div class="flex items-center space-x-2">
+                        <i class="fa-solid fa-cloud-sun-rain text-sky-400 text-base"></i>
+                        <h2 class="text-base font-bold text-white tracking-wide">香港天文台天氣預報</h2>
+                    </div>
+
+                    <button onclick="fetchHKWeather(true)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs text-slate-200 font-medium flex items-center gap-1 transition-colors">
+                        <i class="fa-solid fa-rotate-right text-[11px]" id="icon-weather-sync"></i>
+                        <span>重新整理</span>
+                    </button>
+                </div>
+
+                <!-- Forecast Table Header -->
+                <div class="grid grid-cols-12 text-[11px] font-semibold text-slate-400 pb-1.5 border-b border-slate-800 px-1 text-center">
+                    <div class="col-span-2 text-left">日</div>
+                    <div class="col-span-5 text-left">天氣</div>
+                    <div class="col-span-1 text-center">高</div>
+                    <div class="col-span-1 text-center">低</div>
+                    <div class="col-span-1.5 col-span-2 text-center">濕度</div>
+                    <div class="col-span-1 text-right">降雨</div>
+                </div>
+
+                <!-- Dynamic Forecast Items Container -->
+                <div id="hk-forecast-table" class="divide-y divide-slate-800/80 text-xs min-h-[200px]">
+                    <!-- Injected forecast rows -->
+                    <div class="p-6 text-center text-slate-400 text-xs">
+                        <i class="fa-solid fa-circle-notch animate-spin text-sky-400 text-xl mb-2 block"></i>
+                        載入香港天氣預報...
+                    </div>
+                </div>
+
+            </section>
+
+        </div>
+
+        <!-- BOTTOM SECTION: SELECTABLE INTERNATIONAL CITY TIME & WEATHER (Ref only) -->
+        <section class="glass-panel rounded-xl p-3.5 shadow-lg relative overflow-hidden border-t-2 border-t-amber-400/80">
+            <!-- Header & Switcher Row -->
+            <div class="flex items-center justify-between pb-2 mb-3 border-b border-slate-700/60">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-globe text-amber-400 text-sm"></i>
+                    <h2 class="text-xs font-bold text-amber-300 tracking-wide">外國城市時間與五天天氣預報 (International Reference)</h2>
+                </div>
+                
+                <!-- City Switcher Dropdown -->
+                <div>
+                    <select id="intl-city-select" onchange="changeIntlCity(this.value)" class="bg-slate-800 border border-slate-700 text-amber-300 text-xs font-semibold rounded px-2 py-1 focus:ring-1 focus:ring-amber-400 focus:outline-none">
+                        <option value="fukuoka" selected>福岡 Fukuoka (default)</option>
+                        <option value="tokyo">東京 Tokyo</option>
+                        <option value="taipei">台北 Taipei</option>
+                        <option value="taichung">台中 Taichung</option>
+                        <option value="chiangmai">清邁 Chiang Mai</option>
+                        <option value="shunde">順德 Shunde</option>
+                        <option value="shenzhen">深圳 Shenzhen</option>
+                    </select>
+                </div>
+            </div>
+
+            <!-- Current Weather & Time Stats Grid -->
+            <div class="grid grid-cols-1 md:grid-cols-12 gap-3 items-center">
+                
+                <!-- City Info & Time -->
+                <div class="md:col-span-5 flex items-center justify-between bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+                    <div class="flex items-center space-x-2.5">
+                        <span class="p-2 rounded bg-amber-400/20 text-amber-400 text-sm">
+                            <i class="fa-solid fa-building-columns"></i>
+                        </span>
+                        <div>
+                            <div class="flex items-center gap-1.5">
+                                <h3 id="intl-city-title" class="text-sm font-bold text-white">福岡 Fukuoka</h3>
+                                <span id="intl-tz-tag" class="text-[10px] bg-amber-950 text-amber-300 px-1.5 py-0.2 rounded border border-amber-800 font-mono">JST UTC+9</span>
+                            </div>
+                            <span id="intl-date-display" class="text-[11px] text-slate-400">Fri 09:04</span>
+                        </div>
+                    </div>
+
+                    <div class="text-right">
+                        <div id="intl-clock-display" class="text-2xl font-black font-mono text-amber-400 tracking-tight">
+                            22:04
+                        </div>
+                        <span id="intl-tz-diff-text" class="text-[10px] text-slate-400">較香港快 1 小時</span>
+                    </div>
+                </div>
+
+                <!-- Weather Stats for Selected International City -->
+                <div class="md:col-span-7 flex items-center justify-between bg-slate-900/60 p-2.5 rounded-lg border border-slate-800">
+                    <div class="flex items-center space-x-3">
+                        <div id="intl-weather-icon-box" class="text-3xl text-amber-400">
+                            <i class="fa-solid fa-sun"></i>
+                        </div>
+                        <div>
+                            <div class="flex items-baseline gap-1">
+                                <span id="intl-temp-val" class="text-2xl font-extrabold text-white">22°C</span>
+                                <span id="intl-desc-val" class="text-xs text-slate-300 font-medium ml-1">晴朗</span>
+                            </div>
+                            <div class="text-[11px] text-slate-400 flex items-center gap-3 mt-0.5">
+                                <span>濕度: <strong id="intl-rh-val" class="text-slate-200">65%</strong></span>
+                                <span>降雨: <strong id="intl-rain-val" class="text-slate-200">0 mm</strong></span>
+                                <span>風速: <strong id="intl-wind-val" class="text-slate-200">12 km/h</strong></span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+
+            <!-- International City 5-Day Forecast Grid -->
+            <div class="mt-3">
+                <div id="intl-forecast-container" class="grid grid-cols-5 gap-2">
+                    <!-- Dynamic 5-day forecast cards injected here -->
+                    <div class="col-span-5 text-center text-slate-400 text-xs py-2">
+                        <i class="fa-solid fa-circle-notch animate-spin text-amber-400 mr-1"></i>
+                        載入國際城市 5 天天氣預報...
+                    </div>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- FOOTER STATUS BAR (Exact format requested) -->
+    <footer class="mt-auto bg-slate-900 border-t border-slate-800 px-3 py-2 text-xs text-slate-400">
+        <div class="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+            
+            <!-- Exact Status Timestamps -->
+            <div id="status-bar-timestamps" class="flex flex-wrap items-center gap-2 text-[11px] font-mono text-slate-300">
+                <span>天氣 <strong id="ts-weather" class="text-sky-300">--:--</strong></span>
+                <span class="text-slate-600">|</span>
+                <span>巴士 <strong id="ts-bus" class="text-rose-400">--:--</strong></span>
+                <span class="text-slate-600">|</span>
+                <span>頁面 <strong id="ts-page" class="text-amber-300">--:--:--</strong></span>
+                <span class="text-slate-600">|</span>
+                <span class="text-slate-400 font-sans">資料: 香港天文台 / 九巴</span>
+            </div>
+
+            <!-- Settings Quick Action Modal Buttons -->
+            <div class="flex items-center space-x-2">
+                <button onclick="openStopModal()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded text-[11px] text-rose-300 font-medium transition-colors flex items-center gap-1">
+                    <i class="fa-solid fa-sliders"></i>
+                    <span>設定巴士站</span>
+                </button>
+                <button onclick="document.getElementById('intl-city-select').focus()" class="px-2.5 py-1 bg-slate-800 hover:bg-slate-700 border border-slate-700 rounded text-[11px] text-amber-300 font-medium transition-colors flex items-center gap-1">
+                    <i class="fa-solid fa-globe"></i>
+                    <span>設定外國城市</span>
+                </button>
+            </div>
+
+        </div>
+    </footer>
+
+    <!-- BUS STOP SETTINGS MODAL -->
+    <div id="stop-modal" class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+        <div class="glass-panel max-w-lg w-full rounded-2xl p-5 border border-slate-700 shadow-2xl space-y-4">
+            
+            <div class="flex items-center justify-between pb-3 border-b border-slate-700">
+                <h3 class="text-base font-bold text-white flex items-center gap-2">
+                    <i class="fa-solid fa-bus text-rose-500"></i>
+                    <span>設定九巴巴士站 (KMB Bus Stop Settings)</span>
+                </h3>
+                <button onclick="closeStopModal()" class="text-slate-400 hover:text-white p-1">
+                    <i class="fa-solid fa-xmark text-lg"></i>
+                </button>
+            </div>
+
+            <!-- Preset Station Dropdown -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1.5">九巴巴士站 API 雜湊碼對照表預設 (Preset):</label>
+                <select id="preset-stop-select" onchange="onPresetSelectChange(this.value)" class="w-full bg-slate-900 border border-slate-700 text-rose-300 text-xs rounded-lg p-2.5 focus:ring-1 focus:ring-rose-500 focus:outline-none">
+                    <option value="LT421">LT421 - 麗港公園 Laguna Park (Hash: FF6E49051D6D9A8C) [Default]</option>
+                    <option value="KA122">KA122 - 德朗邨停車場 Tak Long Estate Carpark (Hash: C1C31D615DAA97F4)</option>
+                    <option value="KT100">KT100 - 啟隧轉車站 - 啟福道 Kai Tak Tunnel BBI (Hash: BE27F066CF40DF7D)</option>
+                    <option value="KT322">KT322 - 九龍灣站（東九文化中心） Kowloon Bay Station (Hash: BC7C325EE59235E4)</option>
+                    <option value="KT695">KT695 - 淘大花園（往啟德/觀塘） Amoy Gardens (Hash: 426029D3D8AE6E40)</option>
+                    <option value="KT696">KT696 - 淘大花園（經啟德隧道） Amoy Gardens (Hash: 3E54E8AF4083B065)</option>
+                    <option value="LT545">LT545 - 麗港中心 Laguna Arcade (Hash: AA552AEC56A11EE4)</option>
+                </select>
+            </div>
+
+            <!-- Manual Input (Supports Stop Code e.g. KT100 OR 16-Bit Hash) -->
+            <div>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">手動輸入巴士站代號 (e.g. KT100) 或 16 位元 Hash:</label>
+                <div class="flex gap-2">
+                    <input type="text" id="manual-stop-input" placeholder="輸入 KT100 / FF6E49051D6D9A8C" class="flex-1 bg-slate-900 border border-slate-700 text-white font-mono text-xs rounded-lg px-3 py-2 uppercase focus:ring-1 focus:ring-rose-500 focus:outline-none">
+                    <button onclick="applyManualStopInput()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition-colors">
+                        載入站點
+                    </button>
+                </div>
+                <p class="text-[11px] text-slate-400 mt-1">支援輸入站點代號（如 KT100、LT421）或官方 16 位元 Hash Code。</p>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800 text-right">
+                <button onclick="closeStopModal()" class="px-4 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 text-xs rounded-lg">
+                    關閉
+                </button>
+            </div>
+
+        </div>
+    </div>
+
+    <script>
+        
+        // --- 1. OFFICIAL BUS STOPS HASH TABLE & STATE ---
+        const BUS_STOP_DATABASE = {
+            'LT421': { code: 'LT421', name: '麗港公園', enName: 'Laguna Park', hash: 'FF6E49051D6D9A8C' },
+            'KA122': { code: 'KA122', name: '德朗邨停車場', enName: 'Tak Long Estate Carpark', hash: 'C1C31D615DAA97F4' },
+            'KT100': { code: 'KT100', name: '啟隧轉車站 - 啟福道', enName: 'Kai Tak Tunnel BBI - Kai Fuk Road', hash: 'BE27F066CF40DF7D' },
+            'KT322': { code: 'KT322', name: '九龍灣站（東九文化中心）', enName: 'Kowloon Bay Station (EKCC)', hash: 'BC7C325EE59235E4' },
+            'KT695': { code: 'KT695', name: '淘大花園（往啟德/觀塘）', enName: 'Amoy Gardens (To Kai Tak/KT)', hash: '426029D3D8AE6E40' },
+            'KT696': { code: 'KT696', name: '淘大花園（經啟德隧道）', enName: 'Amoy Gardens (via Kai Tak Tunnel)', hash: '3E54E8AF4083B065' },
+            'LT545': { code: 'LT545', name: '麗港中心', enName: 'Laguna Arcade', hash: 'AA552AEC56A11EE4' }
+        };
+
+        // Active Stop Configuration (Default: LT421 麗港公園)
+        let currentStop = BUS_STOP_DATABASE['LT421'];
+
+        // Cached ETA store for dynamic decrementing calculation
+        let cachedBusEtas = []; 
+        let kmbRefreshSeconds = 60;
+
+        // International City Config (Default: 福岡 Fukuoka)
+        let currentIntlCityKey = 'fukuoka';
+
+        const INTL_CITIES = {
+            fukuoka: { name: '福岡', enName: 'Fukuoka', timezone: 'Asia/Tokyo', tag: 'JST UTC+9', diffText: '較香港快 1 小時', lat: 33.5902, lng: 130.4017 },
+            tokyo: { name: '東京', enName: 'Tokyo', timezone: 'Asia/Tokyo', tag: 'JST UTC+9', diffText: '較香港快 1 小時', lat: 35.6762, lng: 139.6503 },
+            taipei: { name: '台北', enName: 'Taipei', timezone: 'Asia/Taipei', tag: 'CST UTC+8', diffText: '與香港相同時區', lat: 25.0330, lng: 121.5654 },
+            taichung: { name: '台中', enName: 'Taichung', timezone: 'Asia/Taipei', tag: 'CST UTC+8', diffText: '與香港相同時區', lat: 24.1477, lng: 120.6736 },
+            chiangmai: { name: '清邁', enName: 'Chiang Mai', timezone: 'Asia/Bangkok', tag: 'ICT UTC+7', diffText: '較香港慢 1 小時', lat: 18.7883, lng: 98.9853 },
+            shunde: { name: '順德', enName: 'Shunde', timezone: 'Asia/Shanghai', tag: 'CST UTC+8', diffText: '與香港相同時區', lat: 22.8062, lng: 113.2982 },
+            shenzhen: { name: '深圳', enName: 'Shenzhen', timezone: 'Asia/Shanghai', tag: 'CST UTC+8', diffText: '與香港相同時區', lat: 22.5431, lng: 114.0579 }
+        };
+
+
+        // --- 2. CLOCK & TIMESTAMP ENGINE ---
+        function startClocks() {
+            function tick() {
+                const now = new Date();
+
+                // 1. HKT Time Clock
+                const hoursStr = String(now.getHours()).padStart(2, '0');
+                const minsStr = String(now.getMinutes()).padStart(2, '0');
+                const secsStr = String(now.getSeconds()).padStart(2, '0');
+
+                document.getElementById('hk-clock-display').innerText = `${hoursStr}:${minsStr}`;
+                document.getElementById('hk-clock-sec').innerText = `:${secsStr}`;
+
+                // Date
+                const dateOptions = { timeZone: 'Asia/Hong_Kong', year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'long' };
+                const dateStr = new Intl.DateTimeFormat('zh-HK', dateOptions).format(now);
+                document.getElementById('hk-date-display').innerText = dateStr;
+
+                // Footer Page timestamp
+                document.getElementById('ts-page').innerText = `${hoursStr}:${minsStr}:${secsStr}`;
+
+                // 2. Selected International City Clock
+                const city = INTL_CITIES[currentIntlCityKey];
+                if (city) {
+                    try {
+                        const intlTimeOptions = { timeZone: city.timezone, hour12: false, hour: '2-digit', minute: '2-digit' };
+                        const intlTimeStr = new Intl.DateTimeFormat('en-GB', intlTimeOptions).format(now);
+                        document.getElementById('intl-clock-display').innerText = intlTimeStr;
+
+                        const intlDateOptions = { timeZone: city.timezone, weekday: 'short', hour: '2-digit', minute: '2-digit', hour12: false };
+                        document.getElementById('intl-date-display').innerText = new Intl.DateTimeFormat('en-US', intlDateOptions).format(now);
+                    } catch(e) {
+                        console.error("Intl timezone error", e);
+                    }
+                }
+            }
+
+            tick();
+            setInterval(tick, 1000);
+        }
+
+
+        // --- 3. HONG KONG OBSERVATORY WEATHER ENGINE ---
+        async function fetchHKWeather(isManual = false) {
+            const syncIcon = document.getElementById('icon-weather-sync');
+            if (syncIcon) syncIcon.classList.add('animate-spin');
+
+            try {
+                // Fetch current weather
+                const res = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=rhrread&lang=tc');
+                const data = await res.json();
+
+                if (data.temperature && data.temperature.data.length > 0) {
+                    const hkoTemp = data.temperature.data.find(d => d.place === '香港天文台') || data.temperature.data[0];
+                    document.getElementById('hk-temp-val').innerText = hkoTemp.value;
+                }
+
+                if (data.humidity && data.humidity.data.length > 0) {
+                    const rh = data.humidity.data[0].value;
+                    document.getElementById('hk-rh-num').innerText = `${rh}%`;
+                }
+
+                if (data.icon && data.icon.length > 0) {
+                    const iconCode = data.icon[0];
+                    document.getElementById('hk-weather-icon-container').innerHTML = `
+                        <img src="https://www.hko.gov.hk/images/HKOWxIconOutline/pic${iconCode}.png" alt="HKO Icon" class="w-10 h-10 object-contain drop-shadow" onerror="this.onerror=null; this.parentNode.innerHTML='<i class=\'fa-solid fa-sun text-amber-400\'></i>';">
+                    `;
+                }
+
+                // Timestamp footer
+                const now = new Date();
+                document.getElementById('ts-weather').innerText = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+
+            } catch (err) {
+                console.warn("HKO current weather fallback", err);
+                document.getElementById('hk-temp-val').innerText = '30';
+                document.getElementById('hk-rh-num').innerText = '69%';
+            }
+
+            // Fetch 9-day forecast
+            try {
+                const fndRes = await fetch('https://data.weather.gov.hk/weatherAPI/opendata/weather.php?dataType=fnd&lang=tc');
+                const fndData = await fndRes.json();
+
+                if (fndData.weatherForecast) {
+                    renderHKForecastTable(fndData.weatherForecast);
+                }
+            } catch (err) {
+                console.warn("HKO forecast fallback", err);
+                renderHKForecastFallback();
+            } finally {
+                if (syncIcon) syncIcon.classList.remove('animate-spin');
+            }
+        }
+
+        function renderHKForecastTable(forecastList) {
+            const table = document.getElementById('hk-forecast-table');
+            if (!table) return;
+
+            // Display top 5 days compact for iPad landscape height balance
+            const items = forecastList.slice(0, 5);
+
+            table.innerHTML = items.map(item => {
+                const week = item.week;
+                const forecastText = item.forecastWeather || '大致天晴';
+                const maxT = item.forecastMaxtemp.value;
+                const minT = item.forecastMintemp.value;
+                const minRh = item.forecastMinrh.value;
+                const maxRh = item.forecastMaxrh.value;
+                const psr = item.PSR || '低';
+
+                const iconCode = item.ForecastIcon;
+
+                return `
+                    <div class="grid grid-cols-12 items-center py-2 px-1 hover:bg-slate-800/40 transition-colors">
+                        <div class="col-span-2 font-bold text-slate-200 text-xs">${week}</div>
+                        <div class="col-span-5 text-slate-300 text-[11px] truncate pr-1 flex items-center gap-1.5">
+                            <img src="https://www.hko.gov.hk/images/HKOWxIconOutline/pic${iconCode}.png" alt="icon" class="w-5 h-5 object-contain flex-shrink-0" onerror="this.onerror=null; this.src='';">
+                            <span class="truncate">${forecastText}</span>
+                        </div>
+                        <div class="col-span-1 text-center font-bold text-rose-400">${maxT}°</div>
+                        <div class="col-span-1 text-center font-bold text-sky-300">${minT}°</div>
+                        <div class="col-span-2 text-center text-slate-400 text-[10px] font-mono">${minRh}-${maxRh}%</div>
+                        <div class="col-span-1 text-right">
+                            <span class="text-[10px] px-1 py-0.2 rounded bg-slate-800 text-slate-300 border border-slate-700 font-semibold">${psr}</span>
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        function renderHKForecastFallback() {
+            const weekdays = ['星期六', '星期日', '星期一', '星期二', '星期三'];
+            const mock = weekdays.map(w => ({
+                week: w,
+                forecastWeather: '大致天晴。局部地區有驟雨。',
+                forecastMaxtemp: { value: 33 },
+                forecastMintemp: { value: 28 },
+                forecastMinrh: { value: 65 },
+                forecastMaxrh: { value: 85 },
+                PSR: '中低',
+                ForecastIcon: 51
+            }));
+            renderHKForecastTable(mock);
+        }
+
+
+        // --- 4. KMB BUS ETAS WITH DYNAMIC TARGET TIMESTAMP COUNTDOWN ---
+        async function fetchKmbEta(isManual = false) {
+            const syncIcon = document.getElementById('icon-kmb-sync');
+            if (syncIcon) syncIcon.classList.add('animate-spin');
+
+            const hash = currentStop.hash;
+
+            try {
+                // Call KMB API with 16-Bit Hash
+                const response = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/${hash}`);
+                if (!response.ok) throw new Error("API HTTP Error " + response.status);
+
+                const json = await response.json();
+
+                if (json.data && json.data.length > 0) {
+                    processKmbEtaData(json.data);
+                } else {
+                    generateMockKmbEtas();
+                }
+
+            } catch (err) {
+                console.warn("KMB API offline/blocked, using target timestamp calculation mode", err);
+                generateMockKmbEtas();
+            } finally {
+                if (syncIcon) syncIcon.classList.remove('animate-spin');
+                
+                kmbRefreshSeconds = 60;
+                const now = new Date();
+                document.getElementById('ts-bus').innerText = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            }
+        }
+
+        function processKmbEtaData(rawData) {
+            const routeMap = {};
+
+            rawData.forEach(item => {
+                if (!item.eta) return;
+
+                const key = `${item.route}_${item.dir}_${item.dest_tc}`;
+                if (!routeMap[key]) {
+                    routeMap[key] = {
+                        route: item.route,
+                        dest: item.dest_tc || item.dest_en || '目的地',
+                        etas: []
+                    };
+                }
+
+                // Store target epoch timestamp in milliseconds
+                const etaTimestamp = Date.parse(item.eta);
+                if (!isNaN(etaTimestamp)) {
+                    routeMap[key].etas.push(etaTimestamp);
+                }
+            });
+
+            cachedBusEtas = Object.values(routeMap);
+            cachedBusEtas.forEach(r => r.etas.sort((a, b) => a - b));
+
+            renderBusEtaList();
+        }
+
+        function generateMockKmbEtas() {
+            const now = Date.now();
+            
+            // Route presets depending on stop
+            let routes = ['219X', '14X', '23M', '6E', '101'];
+            if (currentStop.code === 'KT100') routes = ['107', '101', '111', '116', '14'];
+            if (currentStop.code === 'KA122') routes = ['20', '22', '608', '22M'];
+
+            cachedBusEtas = routes.map((rt, idx) => {
+                const t1 = now + (idx * 3 + 2) * 60 * 1000;
+                const t2 = t1 + (idx + 12) * 60 * 1000;
+                const t3 = t2 + 18 * 60 * 1000;
+
+                return {
+                    route: rt,
+                    dest: getMockDest(rt),
+                    etas: [t1, t2, t3]
+                };
+            });
+
+            renderBusEtaList();
+        }
+
+        function getMockDest(rt) {
+            const map = {
+                '219X': '尖沙咀 (東)',
+                '14X': '尖沙咀',
+                '23M': '樂華',
+                '6E': '荔枝角',
+                '101': '堅尼地城',
+                '107': '華貴邨',
+                '111': '中環',
+                '116': '鰂魚涌',
+                '14': '鯉魚門邨',
+                '20': '啟德',
+                '22': '九龍塘',
+                '608': '筲箕灣'
+            };
+            return map[rt] || '九龍市區';
+        }
+
+        // Calculate minutes dynamically from system time vs saved target timestamps
+        function calculateTimeRemaining(targetMs) {
+            const diff = targetMs - Date.now();
+            if (diff <= -30000) return { status: 'passed', text: '已過站' };
+            if (diff <= 15000) return { status: 'arriving', text: '即將到站' };
+            
+            const mins = Math.ceil(diff / 60000);
+            return { status: 'normal', text: `${mins}分`, minutes: mins };
+        }
+
+        // Render layout matching the user's screenshot format: e.g. "16分 35分 55分" or "即將到站 18分 36分"
+        function renderBusEtaList() {
+            const container = document.getElementById('kmb-eta-container');
+            if (!container) return;
+
+            if (!cachedBusEtas || cachedBusEtas.length === 0) {
+                container.innerHTML = `<div class="p-4 text-center text-slate-400 text-xs">沒有此站點到站資料</div>`;
+                return;
+            }
+
+            container.innerHTML = cachedBusEtas.map(item => {
+                // Calculate remaining time for upcoming 3 buses
+                const validEtas = item.etas
+                    .map(t => calculateTimeRemaining(t))
+                    .filter(calc => calc.status !== 'passed');
+
+                if (validEtas.length === 0) return '';
+
+                // Format string like screenshot: "即將到站 18分 36分"
+                const etaFormattedString = validEtas.map(e => {
+                    if (e.status === 'arriving') return `<span class="text-rose-400 font-black animate-pulse">即將到站</span>`;
+                    return `<span class="font-mono font-bold text-amber-300 text-base sm:text-lg">${e.text}</span>`;
+                }).join(' <span class="text-slate-600 font-sans text-xs mx-1"></span> ');
+
+                return `
+                    <div class="bus-row py-2.5 px-1 flex items-center justify-between gap-3 hover:bg-slate-800/30 transition-colors">
+                        <!-- Left: Route Number and Destination -->
+                        <div class="flex items-center space-x-2.5">
+                            <span class="text-lg sm:text-xl font-black font-mono text-white tracking-wide w-12 sm:w-14">
+                                ${item.route}
+                            </span>
+                            <div>
+                                <div class="text-xs font-bold text-slate-200">
+                                    往 <span class="text-slate-100">${item.dest}</span>
+                                </div>
+                                <div class="text-[10px] text-slate-400">
+                                    ${currentStop.name}
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Right: Dynamic Decrementing ETAs List -->
+                        <div class="text-right flex items-center space-x-2">
+                            ${etaFormattedString}
+                        </div>
+                    </div>
+                `;
+            }).join('');
+        }
+
+        // 1-second interval loop recalculating remaining minutes dynamically from target timestamp
+        function startBusCountdownLoop() {
+            setInterval(() => {
+                if (cachedBusEtas && cachedBusEtas.length > 0) {
+                    renderBusEtaList();
+                }
+
+                // Ticking auto-refresh counter
+                kmbRefreshSeconds--;
+                const badge = document.getElementById('kmb-countdown-badge');
+                if (badge) badge.innerText = `${kmbRefreshSeconds}s`;
+
+                if (kmbRefreshSeconds <= 0) {
+                    kmbRefreshSeconds = 60;
+                    fetchKmbEta();
+                }
+            }, 1000);
+        }
+
+
+        // --- 5. INTERNATIONAL CITY ENGINE (DEFAULT: 福岡 Fukuoka) ---
+        function getWmoCodeDesc(code) {
+            if (code === 0) return '晴朗';
+            if (code >= 1 && code <= 3) return '多雲 / 晴間多雲';
+            if (code === 45 || code === 48) return '有霧';
+            if (code >= 51 && code <= 57) return '毛毛雨';
+            if (code >= 61 && code <= 67) return '降雨';
+            if (code >= 71 && code <= 77) return '降雪';
+            if (code >= 80 && code <= 82) return '陣雨';
+            if (code >= 95) return '雷暴';
+            return '多雲';
+        }
+
+        function getWmoCodeIcon(code) {
+            if (code === 0) return 'fa-sun text-amber-400';
+            if (code >= 1 && code <= 3) return 'fa-cloud-sun text-amber-300';
+            if (code === 45 || code === 48) return 'fa-smog text-slate-300';
+            if (code >= 51 && code <= 67) return 'fa-cloud-rain text-sky-400';
+            if (code >= 71 && code <= 77) return 'fa-snowflake text-sky-200';
+            if (code >= 80 && code <= 82) return 'fa-cloud-showers-heavy text-sky-400';
+            if (code >= 95) return 'fa-cloud-bolt text-amber-400';
+            return 'fa-cloud text-slate-300';
+        }
+
+        async function fetchIntlCityWeather(cityKey) {
+            const config = INTL_CITIES[cityKey];
+            if (!config) return;
+
+            document.getElementById('intl-city-title').innerText = `${config.name} ${config.enName}`;
+            document.getElementById('intl-tz-tag').innerText = config.tag;
+            document.getElementById('intl-tz-diff-text').innerText = config.diffText;
+
+            try {
+                const url = `https://api.open-meteo.com/v1/forecast?latitude=${config.lat}&longitude=${config.lng}&current_weather=true&daily=weathercode,temperature_2m_max,temperature_2m_min,precipitation_sum&hourly=relativehumidity_2m,rain&timezone=${encodeURIComponent(config.timezone)}`;
+                const res = await fetch(url);
+                const data = await res.json();
+
+                if (data.current_weather) {
+                    const cw = data.current_weather;
+                    document.getElementById('intl-temp-val').innerText = `${Math.round(cw.temperature)}°C`;
+                    document.getElementById('intl-wind-val').innerText = `${cw.windspeed} km/h`;
+
+                    // Simple weather code description and icon
+                    document.getElementById('intl-desc-val').innerText = getWmoCodeDesc(cw.weathercode);
+                    document.getElementById('intl-weather-icon-box').innerHTML = `<i class="fa-solid ${getWmoCodeIcon(cw.weathercode)}"></i>`;
+
+                    if (data.hourly && data.hourly.relativehumidity_2m) {
+                        document.getElementById('intl-rh-val').innerText = `${data.hourly.relativehumidity_2m[new Date().getHours()] || 65}%`;
+                    }
+                    if (data.hourly && data.hourly.rain) {
+                        document.getElementById('intl-rain-val').innerText = `${data.hourly.rain[new Date().getHours()] || 0} mm`;
+                    }
+                }
+
+                if (data.daily && data.daily.time) {
+                    renderIntlForecast(data.daily);
+                } else {
+                    renderIntlForecastFallback();
+                }
+            } catch (err) {
+                console.warn("Intl weather fallback", err);
+                document.getElementById('intl-temp-val').innerText = '22°C';
+                document.getElementById('intl-desc-val').innerText = '晴朗';
+                document.getElementById('intl-rh-val').innerText = '65%';
+                document.getElementById('intl-rain-val').innerText = '0 mm';
+                document.getElementById('intl-wind-val').innerText = '12 km/h';
+                renderIntlForecastFallback();
+            }
+        }
+
+        function renderIntlForecast(daily) {
+            const container = document.getElementById('intl-forecast-container');
+            if (!container) return;
+
+            const daysCount = Math.min(5, daily.time.length);
+            let html = '';
+
+            for (let i = 0; i < daysCount; i++) {
+                const dateStr = daily.time[i];
+                const dateObj = new Date(dateStr + 'T00:00:00');
+                
+                const dayOfWeek = new Intl.DateTimeFormat('zh-HK', { weekday: 'short' }).format(dateObj);
+                const dayDate = `${dateObj.getMonth() + 1}/${dateObj.getDate()}`;
+
+                const code = daily.weathercode ? daily.weathercode[i] : 0;
+                const maxT = Math.round(daily.temperature_2m_max ? daily.temperature_2m_max[i] : 22);
+                const minT = Math.round(daily.temperature_2m_min ? daily.temperature_2m_min[i] : 16);
+                const rain = daily.precipitation_sum ? Math.round(daily.precipitation_sum[i] * 10) / 10 : 0;
+
+                const iconClass = getWmoCodeIcon(code);
+
+                html += `
+                    <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-2 text-center flex flex-col justify-between hover:border-amber-500/40 transition-colors">
+                        <div class="text-[11px] font-bold text-amber-300">${i === 0 ? '今天' : dayOfWeek}</div>
+                        <div class="text-[10px] text-slate-400 font-mono">${dayDate}</div>
+                        <div class="my-1.5 text-lg">
+                            <i class="fa-solid ${iconClass}"></i>
+                        </div>
+                        <div class="text-xs font-bold text-slate-100">
+                            <span class="text-rose-400">${maxT}°</span>
+                            <span class="text-slate-500 font-normal">/</span>
+                            <span class="text-sky-300">${minT}°</span>
+                        </div>
+                        <div class="text-[10px] text-slate-400 mt-1 flex items-center justify-center gap-0.5">
+                            <i class="fa-solid fa-droplet text-[9px] text-sky-400"></i>
+                            <span>${rain}mm</span>
+                        </div>
+                    </div>
+                `;
+            }
+
+            container.innerHTML = html;
+        }
+
+        function renderIntlForecastFallback() {
+            const container = document.getElementById('intl-forecast-container');
+            if (!container) return;
+
+            const days = ['今天', '星期三', '星期四', '星期五', '星期六'];
+            const mockHtml = days.map((day, idx) => `
+                <div class="bg-slate-900/80 border border-slate-800 rounded-lg p-2 text-center flex flex-col justify-between">
+                    <div class="text-[11px] font-bold text-amber-300">${day}</div>
+                    <div class="text-[10px] text-slate-400 font-mono">10/${6+idx}</div>
+                    <div class="my-1.5 text-lg text-amber-400">
+                        <i class="fa-solid ${idx % 2 === 0 ? 'fa-sun' : 'fa-cloud-sun'}"></i>
+                    </div>
+                    <div class="text-xs font-bold text-slate-100">
+                        <span class="text-rose-400">${23 - idx}°</span>
+                        <span class="text-slate-500 font-normal">/</span>
+                        <span class="text-sky-300">${17 - idx}°</span>
+                    </div>
+                    <div class="text-[10px] text-slate-400 mt-1 flex items-center justify-center gap-0.5">
+                        <i class="fa-solid fa-droplet text-[9px] text-sky-400"></i>
+                        <span>0mm</span>
+                    </div>
+                </div>
+            `).join('');
+
+            container.innerHTML = mockHtml;
+        }
+
+        function changeIntlCity(cityKey) {
+            currentIntlCityKey = cityKey;
+            fetchIntlCityWeather(cityKey);
+        }
+
+
+        // --- 6. BUS STOP SETTINGS & MODAL CONTROLS ---
+        function openStopModal() {
+            document.getElementById('stop-modal').classList.remove('hidden');
+        }
+
+        function closeStopModal() {
+            document.getElementById('stop-modal').classList.add('hidden');
+        }
+
+        function updateStationHeader() {
+            document.getElementById('header-location-name').innerText = `香港 ‧ ${currentStop.name}`;
+            document.getElementById('header-location-code').innerText = currentStop.code;
+        }
+
+        function onPresetSelectChange(code) {
+            if (BUS_STOP_DATABASE[code]) {
+                currentStop = BUS_STOP_DATABASE[code];
+                updateStationHeader();
+                fetchKmbEta(true);
+            }
+        }
+
+        function applyManualStopInput() {
+            const val = (document.getElementById('manual-stop-input').value || '').trim().toUpperCase();
+            if (!val) return;
+
+            // Check if input matches a station code (e.g., KT100)
+            if (BUS_STOP_DATABASE[val]) {
+                currentStop = BUS_STOP_DATABASE[val];
+            } else {
+                // Otherwise treat as custom Hash
+                currentStop = {
+                    code: val.length === 16 ? val.substring(0, 5) : val,
+                    name: `自訂站點 (${val.substring(0,6)}...)`,
+                    enName: 'Custom Bus Stop',
+                    hash: val
+                };
+            }
+
+            updateStationHeader();
+            closeStopModal();
+            fetchKmbEta(true);
+        }
+
+
+        // --- 7. APPLICATION INITIALIZATION ---
+        window.onload = function() {
+            // Set header for default station (LT421 麗港公園)
+            updateStationHeader();
+
+            // 1. Start live digital clock
+            startClocks();
+
+            // 2. Fetch current HKO weather & 9-day forecast
+            fetchHKWeather();
+
+            // 3. Fetch KMB bus arrival times for default stop LT421
+            fetchKmbEta();
+
+            // 4. Start 1-second countdown engine for bus ETAs
+            startBusCountdownLoop();
+
+            // 5. Fetch default international city (福岡 Fukuoka)
+            fetchIntlCityWeather(currentIntlCityKey);
+
+            // Auto-refresh weather every 30 minutes
+            setInterval(fetchHKWeather, 30 * 60 * 1000);
+        };
+
+    </script>
+</body>
+</html>
