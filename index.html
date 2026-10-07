@@ -375,30 +375,105 @@
             <!-- Preset Station Dropdown -->
             <div>
                 <label class="block text-xs font-semibold text-slate-300 mb-1.5">九巴巴士站 API 雜湊碼對照表預設 (Preset):</label>
-                <select id="preset-stop-select" onchange="onPresetSelectChange(this.value)" class="w-full bg-slate-900 border border-slate-700 text-rose-300 text-xs rounded-lg p-2.5 focus:ring-1 focus:ring-rose-500 focus:outline-none">
-                    <option value="LT421">LT421 - 麗港公園 Laguna Park (Hash: FF6E49051D6D9A8C) [Default]</option>
-                    <option value="KA122">KA122 - 德朗邨停車場 Tak Long Estate Carpark (Hash: C1C31D615DAA97F4)</option>
-					<option value="KA511">KA511 - 德朗邨停車場（南行）Tak Long Estate Carpark (Southbound)(Hash: 0A4AB87891ABB16A)</option>
-					<option value="KA512">KA512 - 機電工程署總部（南行）EMSD Headquarters (Southbound) (Hash: 6730CB42E8AA1302)</option>					
-                    <option value="KT100">KT100 - 啟隧轉車站 - 啟福道 Kai Tak Tunnel BBI (Hash: BE27F066CF40DF7D)</option>
-                    <option value="KT322">KT322 - 九龍灣站（東九文化中心） Kowloon Bay Station (Hash: BC7C325EE59235E4)</option>
-                    <option value="KT325">KT325 - 牛頭角下邨 Lower Ngau Tau Kok Estate (Hash: 6216EE509BD55B09)</option>
-                    <option value="KT695">KT695 - 淘大花園（往啟德/觀塘） Amoy Gardens (Hash: 426029D3D8AE6E40)</option>
-                    <option value="KT696">KT696 - 淘大花園（經啟德隧道） Amoy Gardens (Hash: 3E54E8AF4083B065)</option>
-                    <option value="LT545">LT545 - 麗港中心 Laguna Arcade (Hash: AA552AEC56A11EE4)</option>
-                </select>
+				<select
+					id="preset-stop-select"
+					onchange="onPresetSelectChange(this.value)"
+					class="w-full bg-slate-900 border border-slate-700 text-rose-300 text-xs rounded-lg p-2.5 focus:ring-1 focus:ring-rose-500 focus:outline-none">
+
+					<optgroup label="📍 Area">
+
+						<option value="AREA_LAGUNA">
+							麗港附近 (3站)
+						</option>
+
+					</optgroup>
+
+					<optgroup label="🚌 個別站點">
+
+						<option value="LT421">
+							LT421 - 麗港公園
+						</option>
+
+						<option value="LT545">
+							LT545 - 麗港中心
+						</option>
+
+						<option value="KA122">
+							KA122 - 德朗邨停車場
+						</option>
+
+						<option value="KA511">
+							KA511 - 德朗邨停車場（南行）
+						</option>
+
+						<option value="KA512">
+							KA512 - 機電工程署總部（南行）
+						</option>
+
+						<option value="KT100">
+							KT100 - 啟隧轉車站
+						</option>
+
+						<option value="KT322">
+							KT322 - 九龍灣站（東九文化中心）
+						</option>
+
+						<option value="KT325">
+							KT325 - 牛頭角下邨
+						</option>
+
+						<option value="KT695">
+							KT695 - 淘大花園（往啟德/觀塘）
+						</option>
+
+						<option value="KT696">
+							KT696 - 淘大花園（經啟德隧道）
+						</option>
+
+					</optgroup>
+
+				</select>
+
+				<div
+					class="mb-3 p-3 rounded-lg bg-slate-900 border border-slate-700">
+
+					<div class="text-xs font-bold text-cyan-300 mb-2">
+						目前選擇
+					</div>
+
+					<div
+						id="current-selection-display"
+						class="text-sm text-white font-semibold">
+					</div>
+
+				</div>
+
+				<div
+					id="area-summary-box"
+					class="mt-3 p-3 rounded-lg bg-slate-900 border border-slate-700">
+
+					<div class="text-xs font-bold text-amber-300 mb-2">
+						Area 包含站點
+					</div>
+
+					<div
+						id="area-summary-content"
+						class="text-[11px] text-slate-300 space-y-1">
+					</div>
+
+				</div>				
             </div>
 
             <!-- Manual Input (Supports Stop Code e.g. KT100 OR 16-Bit Hash) -->
             <div>
-                <label class="block text-xs font-semibold text-slate-300 mb-1">手動輸入巴士站代號 (e.g. KT100) 或 16 位元 Hash:</label>
+                <label class="block text-xs font-semibold text-slate-300 mb-1">搜尋站點代號或名稱：</label>
                 <div class="flex gap-2">
-                    <input type="text" id="manual-stop-input" placeholder="輸入 KT100 / FF6E49051D6D9A8C" class="flex-1 bg-slate-900 border border-slate-700 text-white font-mono text-xs rounded-lg px-3 py-2 uppercase focus:ring-1 focus:ring-rose-500 focus:outline-none">
+                    <input type="text" id="manual-stop-input" placeholder="輸入 KT100、KA511、LT421、麗港" class="flex-1 bg-slate-900 border border-slate-700 text-white font-mono text-xs rounded-lg px-3 py-2 uppercase focus:ring-1 focus:ring-rose-500 focus:outline-none">
                     <button onclick="applyManualStopInput()" class="px-4 py-2 bg-rose-600 hover:bg-rose-500 text-white text-xs font-bold rounded-lg transition-colors">
                         載入站點
                     </button>
                 </div>
-                <p class="text-[11px] text-slate-400 mt-1">支援輸入站點代號（如 KT100、LT421）或官方 16 位元 Hash Code。</p>
+                <p class="text-[11px] text-slate-400 mt-1">支援站點代號、部分站名及 16 位元 Hash。</p>
             </div>
 
             <div class="pt-2 border-t border-slate-800 text-right">
@@ -412,22 +487,162 @@
 
     <script>
         
-        // --- 1. OFFICIAL BUS STOPS HASH TABLE & STATE ---
-        const BUS_STOP_DATABASE = {
-            'LT421': { code: 'LT421', name: '麗港公園', enName: 'Laguna Park', hash: 'FF6E49051D6D9A8C' },
-            'KA122': { code: 'KA122', name: '德朗邨停車場', enName: 'Tak Long Estate Carpark', hash: 'C1C31D615DAA97F4' },
-			'KA511': { code: 'KA511', name: '德朗邨停車場（南行）', enName: 'Tak Long Estate Carpark (Southbound)', hash: '0A4AB87891ABB16A'},
-			'KA512': { code: 'KA512', name: '機電工程署總部（南行）', enName: 'EMSD Headquarters (Southbound)', hash: '6730CB42E8AA1302' },
-            'KT100': { code: 'KT100', name: '啟隧轉車站 - 啟福道', enName: 'Kai Tak Tunnel BBI - Kai Fuk Road', hash: 'BE27F066CF40DF7D' },
-            'KT322': { code: 'KT322', name: '九龍灣站（東九文化中心）', enName: 'Kowloon Bay Station (EKCC)', hash: 'BC7C325EE59235E4' },
-            'KT325': { code: 'KT325', name: '牛頭角下邨', enName: 'Lower Ngau Tau Kok Estate', hash: '6216EE509BD55B09' },
-            'KT695': { code: 'KT695', name: '淘大花園（往啟德/觀塘）', enName: 'Amoy Gardens (To Kai Tak/KT)', hash: '426029D3D8AE6E40' },
-            'KT696': { code: 'KT696', name: '淘大花園（經啟德隧道）', enName: 'Amoy Gardens (via Kai Tak Tunnel)', hash: '3E54E8AF4083B065' },
-            'LT545': { code: 'LT545', name: '麗港中心', enName: 'Laguna Arcade', hash: 'AA552AEC56A11EE4' }
-        };
+        // --- 1. OFFICIAL BUS STOPS HASH TABLE & STATE --- ** replaced with BUS STAND
+		// --- BUS STANDS ---
+
+		const BUS_STANDS = {
+
+			'LT421_N': {
+				area: '麗港附近',
+				code: 'LT421',
+				direction: 'N',
+				name: '麗港公園',
+				enName: 'Laguna Park',
+				hash: 'E9F673D418FA9E71'
+			},
+
+			'LT421_R': {
+				area: '麗港附近',
+				code: 'LT421',
+				direction: 'R',
+				name: '麗港公園',
+				enName: 'Laguna Park',
+				hash: 'FF6E49051D6D9A8C'
+			},
+
+			'LT545_N': {
+				area: '麗港附近',
+				code: 'LT545',
+				direction: 'N',
+				name: '麗港中心',
+				enName: 'Laguna Arcade',
+				hash: 'AA552AEC56A11EE4'
+			},
+
+			'KA122_N': {
+				area: 'KA122',
+				code: 'KA122',
+				direction: 'N',
+				name: '德朗邨停車場',
+				enName: 'Tak Long Estate Carpark',
+				hash: 'C1C31D615DAA97F4'
+			},
+
+			'KA511_N': {
+				area: 'KA511',
+				code: 'KA511',
+				direction: 'N',
+				name: '德朗邨停車場（南行）',
+				enName: 'Tak Long Estate Carpark (Southbound)',
+				hash: '0A4AB87891ABB16A'
+			},
+
+			'KA512_N': {
+				area: 'KA512',
+				code: 'KA512',
+				direction: 'N',
+				name: '機電工程署總部（南行）',
+				enName: 'EMSD Headquarters (Southbound)',
+				hash: '6730CB42E8AA1302'
+			},
+
+			'KT100_N': {
+				area: 'KT100',
+				code: 'KT100',
+				direction: 'N',
+				name: '啟隧轉車站 - 啟福道',
+				enName: 'Kai Tak Tunnel BBI - Kai Fuk Road',
+				hash: 'BE27F066CF40DF7D'
+			},
+
+			'KT322_N': {
+				area: 'KT322',
+				code: 'KT322',
+				direction: 'N',
+				name: '九龍灣站（東九文化中心）',
+				enName: 'Kowloon Bay Station (EKCC)',
+				hash: 'BC7C325EE59235E4'
+			},
+
+			'KT325_N': {
+				area: 'KT325',
+				code: 'KT325',
+				direction: 'N',
+				name: '牛頭角下邨',
+				enName: 'Lower Ngau Tau Kok Estate',
+				hash: '6216EE509BD55B09'
+			},
+
+			'KT695_N': {
+				area: 'KT695',
+				code: 'KT695',
+				direction: 'N',
+				name: '淘大花園（往啟德/觀塘）',
+				enName: 'Amoy Gardens (To Kai Tak/KT)',
+				hash: '426029D3D8AE6E40'
+			},
+
+			'KT696_N': {
+				area: 'KT696',
+				code: 'KT696',
+				direction: 'N',
+				name: '淘大花園（經啟德隧道）',
+				enName: 'Amoy Gardens (via Kai Tak Tunnel)',
+				hash: '3E54E8AF4083B065'
+			}
+
+		};		
+
+		const BUS_AREAS = {
+
+			'麗港附近': [
+				'LT421_N',
+				'LT421_R',
+				'LT545_N'
+			],
+
+			'KA122': [
+				'KA122_N'
+			],
+
+			'KA511': [
+				'KA511_N'
+			],
+
+			'KA512': [
+				'KA512_N'
+			],
+
+			'KT100': [
+				'KT100_N'
+			],
+
+			'KT322': [
+				'KT322_N'
+			],
+
+			'KT325': [
+				'KT325_N'
+			],
+
+			'KT695': [
+				'KT695_N'
+			],
+
+			'KT696': [
+				'KT696_N'
+			]
+
+		};
 
         // Active Stop Configuration (Default: LT421 麗港公園)
-        let currentStop = BUS_STOP_DATABASE['LT421'];
+        let currentStop = BUS_STANDS['LT421_R'];
+		let currentArea = '麗港附近';
+		
+		function getAreaStandKeys() {
+			return BUS_AREAS[currentArea] || [];
+		}
+
 
         // Cached ETA store for dynamic decrementing calculation
         let cachedBusEtas = []; 
@@ -672,20 +887,88 @@
 
             if (syncIcon) syncIcon.classList.add('animate-spin');
 
-            const hash = currentStop.hash;
+            //const hash = currentStop.hash;
+			
+			const standKeys = getAreaStandKeys();
+
+			const hashes =
+				standKeys.length > 0
+					? standKeys.map(
+						key => BUS_STANDS[key].hash
+					)
+					: [currentStop.hash];			
 
             try {
                 // Call KMB API with 16-Bit Hash
-                const response = await fetch(`https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/${hash}`);
-                if (!response.ok) throw new Error("API HTTP Error " + response.status);
+				let combinedData = [];
 
-                const json = await response.json();
+				for (const standKey of standKeys) {
 
-                if (json.data && json.data.length > 0) {
-                    processKmbEtaData(json.data);
-                } else {
-                    generateMockKmbEtas();
-                }
+					const stand =
+						BUS_STANDS[standKey];
+
+					const hash =
+						stand.hash;
+		
+					try {
+
+						const response =
+							await fetch(
+								`https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/${hash}`
+							);
+
+						if (!response.ok)
+							continue;
+
+						const json =
+							await response.json();
+
+						if (
+							json.data &&
+							json.data.length > 0
+						) {
+
+							json.data.forEach(item => {
+
+								item._standKey =
+									standKey;
+
+								item._direction =
+									stand.direction;
+
+								item._standName =
+									stand.name;
+
+								combinedData.push(item);
+
+							});
+
+						}
+
+					}
+					catch(err) {
+
+						console.warn(
+							'Hash fetch failed',
+							hash,
+							err
+						);
+
+					}
+
+				}
+
+				if (combinedData.length > 0) {
+
+					processKmbEtaData(
+						combinedData
+					);
+
+				} else {
+
+					generateMockKmbEtas();
+
+				}
 
             } catch (err) {
                 console.warn("KMB API offline/blocked, using target timestamp calculation mode", err);
@@ -707,6 +990,7 @@
 
                 const key = `${item.route}_${item.dir}_${item.dest_tc}`;
                 if (!routeMap[key]) {
+				
                     routeMap[key] = {
                         route: item.route,
                         dest: item.dest_tc || item.dest_en || '目的地',
@@ -716,16 +1000,55 @@
 
                 // Store target epoch timestamp in milliseconds
                 const etaTimestamp = Date.parse(item.eta);
-                if (!isNaN(etaTimestamp)) {
-                    routeMap[key].etas.push(etaTimestamp);
-                }
+				if (!isNaN(etaTimestamp)) {
+
+					routeMap[key].etas.push({
+
+						timestamp: etaTimestamp,
+
+						direction:
+							item._direction || 'N',
+
+						standName:
+							item._standName || ''
+
+					});
+
+				}
             });
 
             cachedBusEtas = Object.values(routeMap);
-            cachedBusEtas.forEach(r => {
-                r.etas = [...new Set(r.etas)];
-                r.etas.sort((a, b) => a - b);
-            });
+
+			cachedBusEtas.forEach(r => {
+
+				const uniqueMap = {};
+
+				r.etas.forEach(eta => {
+
+					const key =
+						eta.timestamp;
+
+					//
+					// keep first occurrence
+					//
+					if (!uniqueMap[key]) {
+
+						uniqueMap[key] = eta;
+
+					}
+
+				});
+
+				r.etas =
+					Object.values(uniqueMap);
+
+				r.etas.sort(
+					(a, b) =>
+						a.timestamp -
+						b.timestamp
+				);
+
+			});
 
             renderBusEtaList();
         }
@@ -743,12 +1066,37 @@
                 const t1 = now + (idx * 3 + 2) * 60 * 1000;
                 const t2 = t1 + (idx + 12) * 60 * 1000;
                 const t3 = t2 + 18 * 60 * 1000;
+				return {
 
-                return {
-                    route: rt,
-                    dest: getMockDest(rt),
-                    etas: [t1, t2, t3]
-                };
+					route: rt,
+
+					dest: getMockDest(rt),
+
+					etas: [
+
+						{
+							timestamp: t1,
+							direction: 'N',
+							standName: currentStop.name
+						},
+
+						{
+							timestamp: t2,
+							direction: 'N',
+							standName: currentStop.name
+						},
+
+						{
+							timestamp: t3,
+							direction: 'N',
+							standName: currentStop.name
+						}
+
+					]
+
+				};
+
+
             });
 
             renderBusEtaList();
@@ -794,18 +1142,60 @@
 
             container.innerHTML = cachedBusEtas.map(item => {
                 // Calculate remaining time for upcoming 3 buses
-                const validEtas = item.etas
-                    .map(t => calculateTimeRemaining(t))
+				const validEtas = item.etas
+					.map(eta => {
+
+						const calc =
+							calculateTimeRemaining(
+								eta.timestamp
+							);
+
+						return {
+
+							...calc,
+
+							direction:
+								eta.direction,
+
+							standName:
+								eta.standName
+
+						};
+
+					})
+
                     .filter(calc => calc.status !== 'passed');
 
                 if (validEtas.length === 0) return '';
 
                 // Format string like screenshot: "即將到站 18分 36分"
-                const etaFormattedString = validEtas.map(e => {
-                    if (e.status === 'arriving') return `<span class="text-rose-400 font-black animate-pulse">即將到站</span>`;
-                    return `<span class="font-mono font-bold text-amber-300 text-base sm:text-lg">${e.text}</span>`;
-                }).join(' <span class="text-slate-600 font-sans text-xs mx-1"></span> ');
+				const etaFormattedString =
+					validEtas.map(e => {
 
+						const marker =
+							e.direction === 'R'
+								? '↩'
+								: '';
+
+						if (e.status === 'arriving') {
+
+							return `
+								<span class="text-rose-400 font-black animate-pulse">
+									即將到站${marker}
+								</span>
+							`;
+
+						}
+
+						return `
+							<span class="font-mono font-bold text-amber-300 text-base sm:text-lg">
+								${e.text}${marker}
+							</span>
+						`;
+
+					}).join(
+						' <span class="text-slate-600 font-sans text-xs mx-1"></span> '
+					);
                 return `
                     <div class="bus-row py-2.5 px-1 flex items-center justify-between gap-3 hover:bg-slate-800/30 transition-colors">
                         <!-- Left: Route Number and Destination -->
@@ -1522,48 +1912,257 @@ function getNearestCyclone(city) {
 
 
         // --- 6. BUS STOP SETTINGS & MODAL CONTROLS ---
-        function openStopModal() {
-            document.getElementById('stop-modal').classList.remove('hidden');
-        }
+		function openStopModal() {
+
+			document
+				.getElementById('stop-modal')
+				.classList
+				.remove('hidden');
+
+			renderAreaSummary();
+
+		}
 
         function closeStopModal() {
             document.getElementById('stop-modal').classList.add('hidden');
         }
+		
+		function renderAreaSummary() {
 
-        function updateStationHeader() {
-            document.getElementById('header-location-name').innerText = `香港 ‧ ${currentStop.name}`;
-            document.getElementById('header-location-code').innerText = currentStop.code;
-        }
+			const currentDisplay =
+				document.getElementById(
+					'current-selection-display'
+				);
 
-        function onPresetSelectChange(code) {
-            if (BUS_STOP_DATABASE[code]) {
-                currentStop = BUS_STOP_DATABASE[code];
-                updateStationHeader();
-                fetchKmbEta(true);
-            }
-        }
+			if (currentDisplay) {
 
-        function applyManualStopInput() {
-            const val = (document.getElementById('manual-stop-input').value || '').trim().toUpperCase();
-            if (!val) return;
+				const count =
+					(BUS_AREAS[currentArea] || [])
+						.length;
 
-            // Check if input matches a station code (e.g., KT100)
-            if (BUS_STOP_DATABASE[val]) {
-                currentStop = BUS_STOP_DATABASE[val];
-            } else {
-                // Otherwise treat as custom Hash
-                currentStop = {
-                    code: val.length === 16 ? val.substring(0, 5) : val,
-                    name: `自訂站點 (${val.substring(0,6)}...)`,
-                    enName: 'Custom Bus Stop',
-                    hash: val
-                };
-            }
+				currentDisplay.innerHTML =
+					count > 1
+						? `${currentArea} (${count}站)`
+						: currentArea;
 
-            updateStationHeader();
-            closeStopModal();
-            fetchKmbEta(true);
-        }
+			}
+
+			const container =
+				document.getElementById(
+					'area-summary-content'
+				);
+
+			if (!container)
+				return;
+
+			const standKeys =
+				BUS_AREAS[currentArea] || [];
+
+			if (standKeys.length === 0) {
+
+				container.innerHTML =
+					'<div>單一站點模式</div>';
+
+				return;
+
+			}
+
+			container.innerHTML =
+				standKeys.map(key => {
+
+					const stand =
+						BUS_STANDS[key];
+
+					const marker =
+						stand.direction === 'R'
+							? ' ↩'
+							: '';
+
+					return `
+						<div>
+							• ${stand.name}${marker}
+						</div>
+					`;
+
+				}).join('');
+
+		}		
+		
+
+		function updateStationHeader() {
+
+			document.getElementById(
+				'header-location-name'
+			).innerText =
+				`香港 ‧ ${currentArea}`;
+
+			const badge =
+				document.getElementById(
+					'header-location-code'
+				);
+
+			if (
+				currentArea === '麗港附近'
+			) {
+
+				badge.innerText = 'HOME AREA';
+
+			} else {
+
+				badge.innerText =
+					currentStop.code;
+
+			}
+
+		}
+		
+
+		<!-- function onPresetSelectChange(code) { -->
+
+			<!-- if (code === 'AREA_LAGUNA') { -->
+
+				<!-- currentArea = '麗港附近'; -->
+
+				<!-- // -->
+				<!-- // Temporary: -->
+				<!-- // use LT421 return stand -->
+				<!-- // -->
+				<!-- // Step 3 will merge: -->
+				<!-- // LT421_N -->
+				<!-- // LT421_R -->
+				<!-- // LT545_N -->
+				<!-- // -->
+
+				<!-- currentStop = -->
+					<!-- BUS_STANDS['LT421_R']; -->
+
+				<!-- updateStationHeader(); -->
+
+				<!-- fetchKmbEta(true); -->
+
+				<!-- return; -->
+
+			<!-- } -->
+
+		<!-- } -->
+
+		function onPresetSelectChange(code) {
+
+			if (code === 'AREA_LAGUNA') {
+
+				currentArea = '麗港附近';
+
+				currentStop =
+					BUS_STANDS['LT421_R'];
+
+				updateStationHeader();
+				renderAreaSummary();
+				fetchKmbEta(true);
+
+				return;
+			}
+
+			const standKey =
+				`${code}_N`;
+
+			if (BUS_STANDS[standKey]) {
+
+				currentArea = code;
+
+				currentStop =
+					BUS_STANDS[standKey];
+
+				updateStationHeader();
+				renderAreaSummary();
+				fetchKmbEta(true);
+
+			}
+
+		}
+
+		function applyManualStopInput() {
+
+			const val =
+				(
+					document.getElementById(
+						'manual-stop-input'
+					).value || ''
+				)
+				.trim()
+				.toUpperCase();
+
+			if (!val)
+				return;
+
+			//
+			// Area Search
+			//
+			if (val === 'LT421' ||
+				val === 'LAGUNA' ||
+				val === '麗港') {
+
+				currentArea = '麗港附近';
+
+				currentStop =
+					BUS_STANDS['LT421_R'];
+
+				updateStationHeader();
+
+				closeStopModal();
+
+				fetchKmbEta(true);
+
+				return;
+			}
+
+			//
+			// Stand Search
+			//
+			const standKey =
+				`${val}_N`;
+
+			if (BUS_STANDS[standKey]) {
+
+				currentArea = val;
+
+				currentStop =
+					BUS_STANDS[standKey];
+
+				updateStationHeader();
+
+				closeStopModal();
+
+				fetchKmbEta(true);
+
+				return;
+			}
+
+			//
+			// Custom Hash
+			//
+			if (val.length === 16) {
+
+				currentArea = '自訂站點';
+
+				currentStop = {
+					code: val.substring(0, 5),
+					name: `自訂站點 (${val.substring(0,6)}...)`,
+					enName: 'Custom Stop',
+					hash: val
+				};
+
+				updateStationHeader();
+
+				closeStopModal();
+
+				fetchKmbEta(true);
+
+				return;
+			}
+
+			alert('找不到巴士站代號');
+
+		}
 
 
         // --- 7. APPLICATION INITIALIZATION ---
