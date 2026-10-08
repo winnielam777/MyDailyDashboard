@@ -126,16 +126,6 @@
                             <i class="fa-solid fa-sliders text-[11px]"></i>
                             <span>設定巴士站</span>
                         </button>
-						<button
-							onclick="openKmbSearchModal()"
-							class="px-2.5 py-1 rounded bg-sky-900/40 hover:bg-sky-800/60 border border-sky-700/80 text-xs text-sky-200 font-medium flex items-center gap-1 transition-colors">
-
-							<i class="fa-solid fa-magnifying-glass text-[11px]"></i>
-
-							<span>
-								搜尋全港九巴站點 (Beta)
-							</span>
-						</button>						
                         <button onclick="fetchKmbEta(true)" class="px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-700 border border-slate-600 text-xs text-slate-200 font-medium flex items-center gap-1 transition-colors">
                             <i class="fa-solid fa-rotate-right text-[11px]" id="icon-kmb-sync"></i>
                             <span>重新整理</span>
@@ -404,10 +394,6 @@
 							LT421 - 麗港公園
 						</option>
 
-						<option value="KT100">
-							KT100 - 啟隧轉車站
-						</option>
-
 						<option value="LT545">
 							LT545 - 麗港中心
 						</option>
@@ -422,6 +408,10 @@
 
 						<option value="KA512">
 							KA512 - 機電工程署總部（南行）
+						</option>
+
+						<option value="KT100">
+							KT100 - 啟隧轉車站
 						</option>
 
 						<option value="KT322">
@@ -494,58 +484,6 @@
 
         </div>
     </div>
-
-	<!-- KMB SEARCH MODAL -->
-
-	<div
-		id="kmb-search-modal"
-		class="fixed inset-0 bg-slate-950/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-
-		<div class="glass-panel max-w-2xl w-full rounded-2xl p-5 border border-slate-700 shadow-2xl">
-
-			<div class="flex items-center justify-between mb-4">
-
-				<h3 class="text-base font-bold text-sky-300">
-
-					🔍 搜尋全港九巴站點 (Beta)
-
-				</h3>
-
-				<button
-					onclick="closeKmbSearchModal()">
-
-					<i class="fa-solid fa-xmark"></i>
-
-				</button>
-
-			</div>
-
-			<input
-				id="kmb-search-input"
-				type="text"
-				oninput="runKmbSearch()"
-				placeholder="輸入站號或站名，例如：LT421、麗港、德朗、啟德"
-				class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white">
-
-			<div
-				class="mt-4 text-xs text-slate-400">
-
-				Step 5A.1
-				UI Prototype Only
-			</div>
-
-			<div
-				id="kmb-search-results"
-				class="mt-4 border border-slate-800 rounded-lg p-3 min-h-[220px] text-sm text-slate-300">
-
-				搜尋結果將顯示於此
-
-			</div>
-
-		</div>
-
-	</div>
-
 
     <script>
         
@@ -700,7 +638,6 @@
         // Active Stop Configuration (Default: LT421 麗港公園)
         let currentStop = BUS_STANDS['LT421_R'];
 		let currentArea = '麗港附近';
-		let searchResults = [];
 		
 		function getAreaStandKeys() {
 			return BUS_AREAS[currentArea] || [];
@@ -951,45 +888,15 @@
             if (syncIcon) syncIcon.classList.add('animate-spin');
 
             //const hash = currentStop.hash;
-			//const standKeys = getAreaStandKeys();
-
-			//const hashes =
-			//	standKeys.length > 0
-			//		? standKeys.map(
-			//			key => BUS_STANDS[key].hash
-			//		)
-			//		: [currentStop.hash];			
 			
-			let standKeys =
-				getAreaStandKeys();
-
-			//
-			// Single stop fallback
-			//
-			if (
-				standKeys.length === 0
-			) {
-
-				standKeys =
-					Object.keys(
-						BUS_STANDS
-					).filter(key => {
-
-						return (
-							BUS_STANDS[key].code ===
-							currentStop.code
-						);
-
-					});
-
-			}
+			const standKeys = getAreaStandKeys();
 
 			const hashes =
-				standKeys.map(
-					key =>
-						BUS_STANDS[key].hash
-				);			
-			
+				standKeys.length > 0
+					? standKeys.map(
+						key => BUS_STANDS[key].hash
+					)
+					: [currentStop.hash];			
 
             try {
                 // Call KMB API with 16-Bit Hash
@@ -1050,26 +957,6 @@
 					}
 
 				}
-
-<!-- console.log( -->
-    <!-- 'Current Area:', -->
-    <!-- currentArea -->
-<!-- ); -->
-
-<!-- console.log( -->
-    <!-- 'Current Stop:', -->
-    <!-- currentStop -->
-<!-- ); -->
-
-<!-- console.log( -->
-    <!-- 'Stand Keys:', -->
-    <!-- standKeys -->
-<!-- ); -->
-
-<!-- console.log( -->
-    <!-- 'Combined Records:', -->
-    <!-- combinedData.length -->
-<!-- ); -->
 
 				if (combinedData.length > 0) {
 
@@ -2039,228 +1926,6 @@ function getNearestCyclone(city) {
         function closeStopModal() {
             document.getElementById('stop-modal').classList.add('hidden');
         }
-
-		function openKmbSearchModal() {
-
-			document
-				.getElementById(
-					'kmb-search-modal'
-				)
-				.classList
-				.remove('hidden');
-
-		}
-
-		function closeKmbSearchModal() {
-
-			document
-				.getElementById(
-					'kmb-search-modal'
-				)
-				.classList
-				.add('hidden');
-
-		}
-
-		function runKmbSearch() {
-
-			const keyword =
-				(
-					document.getElementById(
-						'kmb-search-input'
-					).value || ''
-				)
-				.trim()
-				.toUpperCase();
-
-			const isCodeSearch =
-				keyword.length >= 2
-				&&
-				/^[A-Z0-9]+$/.test(
-					keyword
-				);
-
-			const resultsDiv =
-				document.getElementById(
-					'kmb-search-results'
-				);
-
-			if (!keyword) {
-
-				resultsDiv.innerHTML =
-					'請輸入搜尋關鍵字';
-
-				return;
-			}
-
-			<!-- const results = -->
-				<!-- Object.values(BUS_STANDS) -->
-					<!-- .filter(stop => { -->
-
-						<!-- return ( -->
-
-							<!-- stop.code -->
-								<!-- .toUpperCase() -->
-								<!-- .includes(keyword) -->
-
-							<!-- || -->
-
-							<!-- stop.name -->
-								<!-- .includes(keyword) -->
-
-							<!-- || -->
-
-							<!-- stop.enName -->
-								<!-- .toUpperCase() -->
-								<!-- .includes(keyword) -->
-
-						<!-- ); -->
-
-					<!-- }); -->
-
-			const uniqueStops = {};
-
-			Object.values(BUS_STANDS)
-				.forEach(stop => {
-
-					if (
-						!uniqueStops[
-							stop.code
-						]
-					) {
-
-						uniqueStops[
-							stop.code
-						] = stop;
-
-					}
-
-				});
-
-			const results =
-				Object.values(
-					uniqueStops
-				).filter(stop => {
-
-					if (isCodeSearch) {
-
-						<!-- return stop.code -->
-							<!-- .toUpperCase() -->
-							<!-- .startsWith(keyword); -->
-
-						return (
-
-							stop.code
-								.toUpperCase()
-								.startsWith(keyword)
-
-							||
-
-							stop.name
-								.includes(keyword)
-
-							||
-
-							stop.enName
-								.toUpperCase()
-								.includes(keyword)
-
-						);
-
-					}
-
-					return (
-
-						stop.name.includes(keyword)
-
-						||
-
-						stop.enName
-							.toUpperCase()
-							.includes(keyword)
-
-					);
-
-				});
-
-			results.sort((a, b) => {
-
-				return a.code.localeCompare(
-					b.code
-				);
-
-			});
-
-			renderKmbSearchResults(results);
-
-		}
-
-		function renderKmbSearchResults(results) {
-
-			const container =
-				document.getElementById(
-					'kmb-search-results'
-				);
-
-			if (!results.length) {
-
-				container.innerHTML =
-					'<div class="text-slate-500">找不到結果</div>';
-
-				return;
-			}
-
-			container.innerHTML =
-				results.map(stop => {
-
-					return `
-
-						<div
-							class="p-2 mb-2 rounded border border-slate-700 flex items-center justify-between">
-
-							<div>
-
-								<div class="font-bold text-white">
-
-									${stop.code}
-
-								</div>
-
-								<div class="text-xs text-slate-300">
-
-									${stop.name}
-
-								</div>
-
-								<div class="text-[10px] text-cyan-400">
-
-									${stop.area}
-
-								</div>
-							</div>
-
-							<button
-								onclick="loadSearchStop('${stop.code}')"
-								class="px-2 py-1 bg-sky-700 rounded text-xs">
-
-								載入
-
-							</button>
-
-						</div>
-
-					`;
-
-				}).join('');
-
-		}
-
-		function loadSearchStop(code) {
-
-			onPresetSelectChange(code);
-			closeKmbSearchModal();
-
-		}		
 		
 		function renderAreaSummary() {
 
