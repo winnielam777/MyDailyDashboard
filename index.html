@@ -535,16 +535,8 @@
 			</div>
 
 			<div
-				id="kmb-search-count"
-				class="mt-3 text-[11px] text-slate-400">
-
-				找到 0 個結果
-
-			</div>
-
-			<div
 				id="kmb-search-results"
-				class="mt-4 border border-slate-800 rounded-lg p-3 min-h-[220px] max-h-[50vh] overflow-y-auto text-sm text-slate-300">
+				class="mt-4 border border-slate-800 rounded-lg p-3 min-h-[220px] text-sm text-slate-300">
 
 				搜尋結果將顯示於此
 
@@ -716,11 +708,9 @@
 
 
         // Cached ETA store for dynamic decrementing calculation
-        let kmbGlobalStops = [];
-		let kmbSearchResultCache = [];
-		let cachedBusEtas = []; 
+        let cachedBusEtas = []; 
         let kmbRefreshSeconds = 60;
-		
+
         // International City Config (Default: 福岡 Fukuoka)
         let currentIntlCityKey = 'fukuoka';
 
@@ -942,48 +932,7 @@
             renderHKForecastTable(mock);
         }
 
-		async function loadKmbGlobalStops() {
 
-			try {
-
-				console.log(
-					'Loading KMB Global Stops...'
-				);
-
-				const response =
-					await fetch(
-						'https://data.etabus.gov.hk/v1/transport/kmb/stop'
-					);
-
-				const json =
-					await response.json();
-
-				if (
-					json.data &&
-					json.data.length > 0
-				) {
-
-					kmbGlobalStops =
-						json.data;
-
-					console.log(
-						'KMB Stops Loaded:',
-						kmbGlobalStops.length
-					);
-
-				}
-
-			}
-			catch(err) {
-
-				console.warn(
-					'Failed loading KMB stop list',
-					err
-				);
-
-			}
-
-		}
         // --- 4. KMB BUS ETAS WITH DYNAMIC TARGET TIMESTAMP COUNTDOWN ---
         async function fetchKmbEta(isManual = false) {
             const syncIcon = document.getElementById('icon-kmb-sync');
@@ -1012,54 +961,11 @@
 			//		: [currentStop.hash];			
 			
 			let standKeys =
-				getAreaStandKeys();			
+				getAreaStandKeys();
 
-<!-- ************************************************************* -->
-console.log(
-    'Current Area:',
-    currentArea
-);
-
-console.log(
-'Current Stop:',
-currentStop
-);
-
-console.log(
-'Stand Keys:',
-standKeys
-);
-
-			<!-- // -->
-			<!-- // Single stop fallback -->
-			<!-- // -->
-			<!-- let standKeys = getAreaStandKeys(); -->
-			<!-- if ( -->
-				<!-- standKeys.length === 0 -->
-			<!-- ) { -->
-
-				<!-- standKeys = -->
-					<!-- Object.keys( -->
-						<!-- BUS_STANDS -->
-					<!-- ).filter(key => { -->
-
-						<!-- return ( -->
-							<!-- BUS_STANDS[key].code === -->
-							<!-- currentStop.code -->
-						<!-- ); -->
-
-					<!-- }); -->
-
-			<!-- } -->
-
-			<!-- const hashes = -->
-				<!-- standKeys.map( -->
-					<!-- key => -->
-						<!-- BUS_STANDS[key].hash -->
-				<!-- );			 -->
-			
-
-
+			//
+			// Single stop fallback
+			//
 			if (
 				standKeys.length === 0
 			) {
@@ -1078,48 +984,24 @@ standKeys
 
 			}
 
-			let hashes = [];
-
-			//
-			// Area / Local Stop
-			//
-			if (
-				standKeys.length > 0
-			) {
-
-				hashes =
-					standKeys.map(
-						key =>
-							BUS_STANDS[key].hash
-					);
-
-			}
-			//
-			// Global Search Stop
-			//
-			else if (
-				currentStop &&
-				currentStop.hash
-			) {
-
-				hashes = [
-					currentStop.hash
-				];
-
-			}
-
+			const hashes =
+				standKeys.map(
+					key =>
+						BUS_STANDS[key].hash
+				);			
+			
 
             try {
                 // Call KMB API with 16-Bit Hash
 				let combinedData = [];
 
-				for (const hash of hashes) {
+				for (const standKey of standKeys) {
 
-					<!-- const stand = -->
-						<!-- BUS_STANDS[standKey]; -->
+					const stand =
+						BUS_STANDS[standKey];
 
-					<!-- const hash = -->
-						<!-- stand.hash; -->
+					const hash =
+						stand.hash;
 		
 					try {
 
@@ -1144,17 +1026,11 @@ standKeys
 								item._standKey =
 									standKey;
 
-								<!-- item._direction = -->
-									<!-- stand.direction; -->
-
-								<!-- item._standName = -->
-									<!-- stand.name; -->
-
 								item._direction =
-									currentStop.direction || 'N';
+									stand.direction;
 
 								item._standName =
-									currentStop.name || '';
+									stand.name;
 
 								combinedData.push(item);
 
@@ -1929,38 +1805,7 @@ function getNearestCyclone(city) {
 
 		}		
 
-<!-- ************************************************************************************ -->
-async function debugKmbStop(stopId) {
-
-    try {
-
-        const response =
-            await fetch(
-                `https://data.etabus.gov.hk/v1/transport/kmb/stop-eta/${stopId}`
-            );
-
-        console.log(
-            'Status:',
-            response.status
-        );
-
-        const json =
-            await response.json();
-
-        console.log(
-            json
-        );
-
-    }
-    catch(err) {
-
-        console.error(err);
-
-    }
-
-}        
-		
-		async function fetchIntlCityWeather(cityKey) {
+        async function fetchIntlCityWeather(cityKey) {
             const config = INTL_CITIES[cityKey];
             if (!config) return;
 
@@ -2346,56 +2191,11 @@ async function debugKmbStop(stopId) {
 
 			});
 
-			const globalResults =
-				kmbGlobalStops
-					.filter(stop => {
+			renderKmbSearchResults(results);
 
-						const tc =
-							stop.name_tc || '';
-
-						const en =
-							stop.name_en || '';
-
-						return (
-
-							tc.includes(keyword)
-
-							||
-
-							en
-								.toUpperCase()
-								.includes(keyword)
-
-						);
-
-					})
-					.slice(0, 30);
-
-			<!-- renderKmbSearchResults(results); -->
-			renderKmbSearchResults(
-				[
-					...results,
-					...globalResults
-				]
-			);
 		}
 
 		function renderKmbSearchResults(results) {
-
-			kmbSearchResultCache =
-				results;
-			
-			const countBox =
-				document.getElementById(
-					'kmb-search-count'
-				);
-
-			if (countBox) {
-
-				countBox.innerText =
-					`找到 ${results.length} 個結果`;
-
-			}
 
 			const container =
 				document.getElementById(
@@ -2411,7 +2211,7 @@ async function debugKmbStop(stopId) {
 			}
 
 			container.innerHTML =
-				results.map((stop, idx) => {
+				results.map(stop => {
 
 					return `
 
@@ -2422,93 +2222,30 @@ async function debugKmbStop(stopId) {
 
 								<div class="font-bold text-white">
 
-									<!-- ${stop.code} -->
-									${stop.code || 'KMB'}
+									${stop.code}
 
 								</div>
 
 								<div class="text-xs text-slate-300">
 
-									<!-- ${stop.name} -->
-									${stop.name || stop.name_tc}
+									${stop.name}
 
 								</div>
-
-								${stop.stop ? `
-
-								<div class="text-[10px] text-amber-400 font-mono">
-
-									${stop.stop}
-
-								</div>
-
-								` : ''}
 
 								<div class="text-[10px] text-cyan-400">
 
-									<!-- ${stop.area} -->
-									${stop.area || '全港九巴站'}
+									${stop.area}
 
 								</div>
 							</div>
-							<!-- <button -->
-								<!-- onclick="loadSearchStop('${stop.code}')" -->
-								<!-- class="px-2 py-1 bg-sky-700 rounded text-xs"> -->
 
-								<!-- 載入 -->
+							<button
+								onclick="loadSearchStop('${stop.code}')"
+								class="px-2 py-1 bg-sky-700 rounded text-xs">
 
-							<!-- </button> -->
+								載入
 
-							<!-- <div> -->
-
-								<!-- ${stop.code ? ` -->
-
-									<!-- <button -->
-										<!-- onclick="loadSearchStop('${stop.code}')" -->
-										<!-- class="px-2 py-1 bg-sky-700 hover:bg-sky-600 rounded text-xs"> -->
-
-										<!-- 載入 -->
-
-									<!-- </button> -->
-
-								<!-- ` : ` -->
-
-									<!-- <span -->
-										<!-- class="text-[10px] text-slate-500"> -->
-
-										<!-- API站點 -->
-
-									<!-- </span> -->
-
-								<!-- `} -->
-
-							<!-- </div> -->
-
-							<div>
-
-								${stop.code ? `
-
-									<button
-										onclick="loadSearchStop('${stop.code}')"
-										class="px-2 py-1 bg-sky-700 hover:bg-sky-600 rounded text-xs">
-
-										載入
-
-									</button>
-
-								` : `
-
-									<button
-										onclick="loadGlobalKmbStopByIndex(${idx})"
-										class="px-2 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs">
-
-										載入
-
-									</button>
-
-								`}
-
-							</div>
+							</button>
 
 						</div>
 
@@ -2524,103 +2261,6 @@ async function debugKmbStop(stopId) {
 			closeKmbSearchModal();
 
 		}		
-
-		function loadGlobalKmbStopByIndex(index) {
-
-			const stop =
-				kmbSearchResultCache[index];
-
-			if (!stop)
-				return;
-
-			currentArea =
-				stop.name_tc;
-
-			currentStop = {
-
-				code:
-					stop.stop.substring(0, 6),
-
-				name:
-					stop.name_tc,
-
-				enName:
-					stop.name_en,
-
-				hash:
-					stop.stop
-
-			};
-
-			updateStationHeader();
-
-			fetchKmbEta(true);
-
-			closeKmbSearchModal();
-
-		}
-
-<!-- ********************************************************* -->
-console.log(
-    'Global Stop Loaded:',
-    currentStop
-);
-
-		function loadGlobalKmbStopByIndex(index) {
-
-			const stop =
-				kmbSearchResultCache[index];
-
-			if (!stop)
-				return;
-
-			currentArea =
-				stop.name_tc;
-
-			currentStop = {
-
-				code:
-					stop.stop.substring(0, 6),
-
-				name:
-					stop.name_tc,
-
-				enName:
-					stop.name_en,
-
-				hash:
-					stop.stop
-
-			};
-
-			updateStationHeader();
-
-			fetchKmbEta(true);
-
-			closeKmbSearchModal();
-
-		}
-		
-		<!-- function loadGlobalKmbStop(stop) { -->
-
-			<!-- currentArea = stop.name_tc; -->
-
-			<!-- currentStop = { -->
-
-				<!-- code: 'KMB', -->
-				<!-- name: stop.name_tc, -->
-				<!-- enName: stop.name_en, -->
-				<!-- hash: stop.stop -->
-
-			<!-- }; -->
-
-			<!-- updateStationHeader(); -->
-
-			<!-- fetchKmbEta(true); -->
-
-			<!-- closeKmbSearchModal(); -->
-
-		<!-- } -->
 		
 		function renderAreaSummary() {
 
@@ -2859,10 +2499,9 @@ console.log(
 
 		}
 
+
         // --- 7. APPLICATION INITIALIZATION ---
         window.onload = async function() {
-
-			await loadKmbGlobalStops();
 
             await fetchLiveCyclones();
 			
