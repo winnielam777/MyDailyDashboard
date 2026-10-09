@@ -3316,13 +3316,14 @@
 
 			await loadKmbGlobalStops();
 			await loadCitybusGlobalStops();
+
+			// comment out due to not yet ready
+            //await fetchLiveCyclones();
 			
-            await fetchLiveCyclones();
-			
-			setInterval(
-			fetchLiveCyclones,
-			30 * 60 * 1000
-			);			
+			//setInterval(
+			//fetchLiveCyclones,
+			//30 * 60 * 1000
+			//);			
 
 			// Set header for default station (LT421 麗港公園)
             updateStationHeader();
