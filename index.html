@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>My Daily Dashboard v26</title>
+    <title>My Daily Dashboard v20</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script>
@@ -534,6 +534,25 @@
 				UI Prototype Only
 			</div>
 
+			<div class="flex gap-1 mb-2">
+
+				<input
+					id="favorite-search-input"
+					type="text"
+					placeholder="搜尋收藏站..."
+					oninput="onFavoriteSearch(this.value)"
+					class="flex-1 px-2 py-1 rounded bg-slate-900 border border-slate-700 text-xs text-white">
+
+				<button
+					onclick="clearFavoriteSearch()"
+					class="px-2 rounded bg-slate-800 hover:bg-slate-700 text-slate-300">
+
+					✕
+
+				</button>
+
+			</div>
+
 			<div
 				id="favorite-stops-panel"
 				class="mb-3">
@@ -936,6 +955,50 @@
                 `;
             }).join('');
         }
+
+		function resetSearchModal() {
+
+			favoriteSearchKeyword = '';
+
+			const kmbInput =
+				document.getElementById(
+					'kmb-search-input'
+				);
+
+			if (kmbInput) {
+				kmbInput.value = '';
+			}
+
+			const favoriteInput =
+				document.getElementById(
+					'favorite-search-input'
+				);
+
+			if (favoriteInput) {
+				favoriteInput.value = '';
+			}
+
+			const countBox =
+				document.getElementById(
+					'kmb-search-count'
+				);
+
+			if (countBox) {
+				countBox.innerHTML = '';
+			}
+
+			const resultsBox =
+				document.getElementById(
+					'kmb-search-results'
+				);
+
+			if (resultsBox) {
+				resultsBox.innerHTML =
+					'搜尋結果將顯示於此';
+			}
+
+			renderFavorites();
+		}
 
         function renderHKForecastFallback() {
             const weekdays = ['星期六', '星期日', '星期一', '星期二', '星期三'];
@@ -2184,42 +2247,6 @@
 
 		}
 
-		function resetSearchModal() {
-
-			favoriteSearchKeyword = '';
-
-			const kmbInput =
-				document.getElementById(
-					'kmb-search-input'
-				);
-
-			if (kmbInput) {
-				kmbInput.value = '';
-			}
-
-			const countBox =
-				document.getElementById(
-					'kmb-search-count'
-				);
-
-			if (countBox) {
-				countBox.innerHTML =
-					'請輸入搜尋關鍵字';
-			}
-
-			const resultsBox =
-				document.getElementById(
-					'kmb-search-results'
-				);
-
-			if (resultsBox) {
-				resultsBox.innerHTML =
-					'搜尋結果將顯示於此';
-			}
-
-			renderFavorites();
-		}
-
 		function closeKmbSearchModal() {
 
 			document
@@ -2584,6 +2611,8 @@
 			updateStationHeader();
 
 			renderAreaSummary();
+			
+			resetSearchModal();
 
 			closeKmbSearchModal();
 
@@ -2610,6 +2639,8 @@
 			};
 
 			updateStationHeader();
+			
+			resetSearchModal();
 
 			closeKmbSearchModal();
 
@@ -2743,14 +2774,14 @@
 			};
 
 			updateStationHeader();
-			
+
 			resetSearchModal();
 
 			closeKmbSearchModal();
 
 			fetchKmbEta(true);
 		}
-
+		
 		function onFavoriteSearch(value) {
 
 			favoriteSearchKeyword =
@@ -2761,6 +2792,24 @@
 			renderFavorites();
 		}
 		
+		function clearFavoriteSearch() {
+
+			favoriteSearchKeyword = '';
+
+			const input =
+				document.getElementById(
+					'favorite-search-input'
+				);
+
+			if (input) {
+
+				input.value = '';
+
+			}
+
+			renderFavorites();
+		}
+
 		function renderFavorites() {
 
 			const panel =
@@ -2804,15 +2853,8 @@
 			panel.innerHTML =
 			`
 			<div class="mb-2 text-xs font-bold text-amber-300">
-				⭐ 我的收藏站 (${filteredFavorites.length}/${favoriteStops.length})
-				
+				⭐ 我的收藏站 (${favoriteStops.length})
 			</div>
-
-			<input
-				type="text"
-				placeholder="搜尋收藏站..."
-				oninput="onFavoriteSearch(this.value)"
-				class="w-full mb-2 px-2 py-1 rounded bg-slate-900 border border-slate-700 text-xs text-white">
 			`
 			+
 			filteredFavorites
