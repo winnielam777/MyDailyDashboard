@@ -402,6 +402,9 @@
 						<option value="AREA_LAGUNA">
 							麗港附近 (3站)
 						</option>
+						<option value="AREA_2OFFICE">
+							九龍灣返工 (3站)
+						</option>
 
 					</optgroup>
 
@@ -700,6 +703,12 @@
 				'LT421_N',
 				'LT421_R',
 				'LT545_N'
+			],
+
+			'九龍灣返工': [
+			'KT322_N',
+			'KT695_N',
+			'KT696_N'
 			],
 
 			'KA122': [
@@ -3153,16 +3162,18 @@
 			if (
 				currentArea === '麗港附近'
 			) {
-
 				badge.innerText =
 					'HOME AREA';
-
+			}
+			else if (
+				currentArea === '九龍灣返工'
+			) {
+				badge.innerText =
+					'OFFICE AREA';
 			}
 			else {
-
 				badge.innerText =
 					currentStop.code;
-
 			}
 		}	
 		
@@ -3210,6 +3221,20 @@
 				fetchKmbEta(true);
 
 				return;
+			}
+
+			if (code === 'AREA_OFFICE') {
+			 
+			currentArea = '九龍灣返工';
+			 
+			currentStop =
+			BUS_STANDS['KT322_N'];
+			 
+			updateStationHeader();
+			renderAreaSummary();
+			fetchKmbEta(true);
+			 
+			return;
 			}
 
 			const standKey =
