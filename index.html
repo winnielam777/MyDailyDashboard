@@ -3047,15 +3047,19 @@
 
 			if (currentDisplay) {
 
-				const count =
-					(BUS_AREAS[currentArea] || [])
-						.length;
+				const standKeys =
+					BUS_AREAS[currentArea] || [];
 
-				currentDisplay.innerHTML =
-					count > 1
-						? `${currentArea} (${count}站)`
-						: currentArea;
+				if (standKeys.length > 0) {
 
+					currentDisplay.innerHTML =
+						`${currentArea} (${standKeys.length}站)`;
+
+				} else {
+
+					currentDisplay.innerHTML =
+						currentArea;
+				}
 			}
 
 			const container =
@@ -3075,7 +3079,6 @@
 					'<div>單一站點模式</div>';
 
 				return;
-
 			}
 
 			container.innerHTML =
@@ -3091,12 +3094,12 @@
 
 					return `
 						<div>
-							• ${stand.name}${marker}
+							• ${stand.code}
+							- ${stand.name}${marker}
 						</div>
 					`;
 
 				}).join('');
-
 		}		
 		
 
