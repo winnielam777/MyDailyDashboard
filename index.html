@@ -398,11 +398,14 @@
 					class="w-full bg-slate-900 border border-slate-700 text-rose-300 text-xs rounded-lg p-2.5 focus:ring-1 focus:ring-rose-500 focus:outline-none">
 
 					<optgroup label="📍 Area">
-
+<!-- ********************************************************** -->
 						<option value="AREA_LAGUNA">
 							麗港附近 (3站)
 						</option>
-						<option value="AREA_2OFFICE">
+						<option value="AREA_KT_PIER"> 
+							W2走左 (9站)
+						</option>
+						<option value="AREA_OFFICE">
 							九龍灣返工 (3站)
 						</option>
 
@@ -693,7 +696,89 @@
 				name: '淘大花園（經啟德隧道）',
 				enName: 'Amoy Gardens (via Kai Tak Tunnel)',
 				hash: '3E54E8AF4083B065'
-			}
+			},
+			
+			'KT216_N': {
+				area: 'KT216',
+				code: 'KT216',
+				direction: 'N',
+				name: '敬業街',
+				enName: 'King Yip Street',
+				hash: '99A3962003285776'
+			},
+
+			'KT217_N': {
+				area: 'KT217',
+				code: 'KT217',
+				direction: 'N',
+				name: '敬業街',
+				enName: 'King Yip Street',
+				hash: '21AFFFF707224831'
+			},
+
+			'KT218_N': {
+				area: 'KT218',
+				code: 'KT218',
+				direction: 'N',
+				name: '敬業街',
+				enName: 'King Yip Street',
+				hash: 'E70EDF92FE8553E2'
+			},
+
+			'KT219_N': {
+				area: 'KT219',
+				code: 'KT219',
+				direction: 'N',
+				name: '敬業街',
+				enName: 'King Yip Street',
+				hash: 'D0F535009C53F787'
+			},
+
+			'KT220_N': {
+				area: 'KT220',
+				code: 'KT220',
+				direction: 'N',
+				name: '敬業街',
+				enName: 'King Yip Street',
+				hash: '9900A2A1E1FC8260'
+			},
+
+			'KT445_N': {
+				area: 'KT445',
+				code: 'KT445',
+				direction: 'N',
+				name: '成業街休憩公園',
+				enName: 'Shing Yip Street Rest Garden',
+				hash: '31BFA986DE84EDE1'
+			},
+
+			'KT446_N': {
+				area: 'KT446',
+				code: 'KT446',
+				direction: 'N',
+				name: '成業街休憩公園',
+				enName: 'Shing Yip Street Rest Garden',
+				hash: 'D52BE142BBBD69D9'
+			},
+
+			'KT447_N': {
+				area: 'KT447',
+				code: 'KT447',
+				direction: 'N',
+				name: '成業街休憩公園',
+				enName: 'Shing Yip Street Rest Garden',
+				hash: 'FAAD25334A972923'
+			},
+
+			'KT448_N': {
+				area: 'KT448',
+				code: 'KT448',
+				direction: 'N',
+				name: '成業街休憩公園',
+				enName: 'Shing Yip Street Rest Garden',
+				hash: 'C8FD960431F7210C'
+			}			
+			
 
 		};		
 
@@ -704,6 +789,18 @@
 				'LT421_R',
 				'LT545_N'
 			],
+			//***********************************************************************
+			'W2走左': [
+				'KT216_N',
+				'KT217_N',
+				'KT218_N',
+				'KT219_N',
+				'KT220_N',			 
+				'KT445_N',
+				'KT446_N',
+				'KT447_N',
+				'KT448_N'
+				],
 
 			'九龍灣返工': [
 			'KT322_N',
@@ -3040,6 +3137,16 @@
 		
 		function renderAreaSummary() {
 
+console.log(
+'Current Area:',
+currentArea
+);
+ 
+console.log(
+'Area Keys:',
+BUS_AREAS[currentArea]
+);
+
 			const currentDisplay =
 				document.getElementById(
 					'current-selection-display'
@@ -3174,6 +3281,12 @@
 				badge.innerText =
 					'OFFICE AREA';
 			}
+			else if (
+				currentArea === 'W2走左'
+			) {
+				badge.innerText =
+					'KT PIER AREA';
+			}
 			else {
 				badge.innerText =
 					currentStop.code;
@@ -3239,6 +3352,22 @@
 			 
 			return;
 			}
+
+<!-- *********************************************************** -->
+			if (code === 'AREA_KT_PIER') {
+			 
+			currentArea = 'W2走左';
+			 
+			currentStop =
+			BUS_STANDS['KT216_N'];
+			 
+			updateStationHeader();
+			renderAreaSummary();
+			fetchKmbEta(true);
+			 
+			return;
+			}
+
 
 			const standKey =
 				`${code}_N`;
