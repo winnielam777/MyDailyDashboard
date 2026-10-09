@@ -535,6 +535,11 @@
 			</div>
 
 			<div
+				id="favorite-stops-panel"
+				class="mb-3">
+			</div>
+
+			<div
 				id="kmb-search-count"
 				class="mt-3 text-[11px] text-slate-400">
 
@@ -709,6 +714,7 @@
         let currentStop = BUS_STANDS['LT421_R'];
 		let currentArea = '麗港附近';
 		let searchResults = [];
+		let favoriteStops = [];
 		let stopRouteCountCache = {};
 		let stopRoutePreviewCache = {};
 		
@@ -1581,45 +1587,46 @@
 
 		}		
 
-function getNearestCyclone(city) {
+		function getNearestCyclone(city) {
 
-    let nearest = null;
+			let nearest = null;
 
-    let nearestDistance = Infinity;
+			let nearestDistance = Infinity;
 
-    const cycloneList =
-        activeCyclones.length > 0
-            ? activeCyclones
-            : FALLBACK_CYCLONES;
+			const cycloneList =
+				activeCyclones.length > 0
+					? activeCyclones
+					: FALLBACK_CYCLONES;
 
-    for (const cyclone of cycloneList) {
+			for (const cyclone of cycloneList) {
 
-        const distance = haversineDistance(
-            city.lat,
-            city.lng,
-            cyclone.lat,
-            cyclone.lon
-        );
+				const distance = haversineDistance(
+					city.lat,
+					city.lng,
+					cyclone.lat,
+					cyclone.lon
+				);
 
-        if (distance < nearestDistance) {
+				if (distance < nearestDistance) {
 
-            nearestDistance = distance;
+					nearestDistance = distance;
 
-            nearest = cyclone;
+					nearest = cyclone;
 
-        }
+				}
 
-    }
+			}
 
-    if (!nearest)
-        return null;
+			if (!nearest)
+				return null;
 
-    return {
-        cyclone: nearest,
-        distance: nearestDistance
-    };
+			return {
+				cyclone: nearest,
+				distance: nearestDistance
+			};
 
-}
+		}
+
 		function evaluateCycloneThreat(city) {
 
 			const nearestResult =
@@ -2436,19 +2443,37 @@ function getNearestCyclone(city) {
 									isGlobal
 									?
 									`
-									<button
-										onclick="loadGlobalKmbStopByIndex(${idx})"
-										class="px-2 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs">
-										載入
-									</button>
+<button
+    onclick="addFavoriteStop({
+        hash:'${stop.stop}',
+        name:'${stop.name_tc}'
+    })"
+    class="px-2 py-1 bg-amber-700 hover:bg-amber-600 rounded text-xs mr-1">
+    ⭐
+</button>
+
+<button
+    onclick="loadGlobalKmbStopByIndex(${idx})"
+    class="px-2 py-1 bg-emerald-700 hover:bg-emerald-600 rounded text-xs">
+    載入
+</button>
 									`
 									:
 									`
-									<button
-										onclick="loadSearchStop('${stop.code}')"
-										class="px-2 py-1 bg-sky-700 hover:bg-sky-600 rounded text-xs">
-										載入
-									</button>
+<button
+    onclick="addFavoriteStop({
+        hash:'${stop.hash}',
+        name:'${stop.name}'
+    })"
+    class="px-2 py-1 bg-amber-700 hover:bg-amber-600 rounded text-xs mr-1">
+    ⭐
+</button>
+
+<button
+    onclick="loadSearchStop('${stop.code}')"
+    class="px-2 py-1 bg-sky-700 hover:bg-sky-600 rounded text-xs">
+    載入
+</button>
 									`
 								}
 
@@ -2511,6 +2536,180 @@ function getNearestCyclone(city) {
 
 			fetchKmbEta(true);
 		}
+
+		function loadFavorites() {
+
+			try {
+
+				favoriteStops =
+					JSON.parse(
+						localStorage.getItem(
+							'favoriteStops'
+						)
+					) || [];
+
+			}
+			catch(err) {
+
+				console.warn(
+					'Load favorites failed',
+					err
+				);
+
+				favoriteStops = [];
+			}
+		}
+
+		function saveFavorites() {
+
+			localStorage.setItem(
+				'favoriteStops',
+				JSON.stringify(
+					favoriteStops
+				)
+			);
+		}
+
+		function addFavoriteStop(stop) {
+
+			const exists =
+				favoriteStops.some(
+					x => x.hash === stop.hash
+				);
+
+			if (exists) {
+
+				console.log(
+					'Favorite already exists'
+				);
+
+				return;
+			}
+
+			favoriteStops.unshift({
+
+				hash: stop.hash,
+
+				name: stop.name,
+
+				source:
+					stop.source || 'global',
+
+				timestamp:
+					Date.now()
+			});
+
+			saveFavorites();
+			
+			renderFavorites();
+			
+			console.log(
+				'Favorite added',
+				stop.name
+			);
+		}
+
+		function removeFavoriteStop(hash) {
+
+			favoriteStops =
+				favoriteStops.filter(
+					x => x.hash !== hash
+				);
+
+			saveFavorites();
+
+			renderFavorites();
+
+			console.log(
+				'Favorite removed',
+				hash
+			);
+		}
+
+		function loadFavoriteStop(hash) {
+
+			const stop =
+				favoriteStops.find(
+					x => x.hash === hash
+				);
+
+			if (!stop)
+				return;
+
+			currentArea = 'GLOBAL';
+
+			currentStop = {
+				code: hash.substring(0, 6),
+				name: stop.name,
+				hash: hash,
+				global: true
+			};
+
+			updateStationHeader();
+
+			closeKmbSearchModal();
+
+			fetchKmbEta(true);
+		}
+		
+		function renderFavorites() {
+
+			const panel =
+				document.getElementById(
+					'favorite-stops-panel'
+				);
+
+			if (!panel)
+				return;
+
+			if (
+				favoriteStops.length === 0
+			) {
+
+				panel.innerHTML =
+				`
+				<div class="text-xs text-slate-500">
+					暫無收藏站
+				</div>
+				`;
+
+				return;
+			}
+
+			panel.innerHTML =
+			`
+			<div class="mb-2 text-xs font-bold text-amber-300">
+				⭐ 我的收藏站
+			</div>
+			` +
+			favoriteStops
+				.sort(
+					(a, b) =>
+						b.timestamp - a.timestamp
+				)
+				.map(stop => `
+				<div
+					class="mb-1 px-2 py-1 rounded bg-slate-900 border border-slate-800 flex items-center justify-between">
+
+					<button
+						onclick="loadFavoriteStop('${stop.hash}')"
+						class="text-[11px] text-slate-200 hover:text-cyan-300 text-left flex-1">
+
+						${stop.name}
+
+					</button>
+
+					<button
+						onclick="removeFavoriteStop('${stop.hash}')"
+						class="text-red-400 hover:text-red-300 text-[11px] ml-2">
+
+						🗑
+
+					</button>
+
+				</div>
+			`).join('');
+		}		
 
 		<!-- function loadGlobalKmbStopByIndex(index) { -->
 
@@ -2920,6 +3119,10 @@ function getNearestCyclone(city) {
 
         // --- 7. APPLICATION INITIALIZATION ---
         window.onload = async function() {
+
+			loadFavorites();
+
+			renderFavorites();
 
 			await loadKmbGlobalStops();
 
